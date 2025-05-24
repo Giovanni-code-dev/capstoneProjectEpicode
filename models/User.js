@@ -22,14 +22,14 @@ const UserSchema = new Schema(
       address: { type: String, required: true },
       coordinates: {
         lat: { type: Number, required: true },
-        lng: { type: Number, required: true },
+        lng: { type: Number, required: true }
       }
     },
     role: {
       type: String,
-      enum: ["admin", "artist", "visitor"],
-      default: "visitor",
-    },
+      enum: ["admin", "artist", "viewer"], // ✅ aggiunto
+      default: "viewer",
+    }
   },
   { timestamps: true }
 )

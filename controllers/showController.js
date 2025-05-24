@@ -45,7 +45,7 @@ export const deleteShow = async (req, res, next) => {
       artist: req.user._id,
     })
     if (!deleted) throw createHttpError(404, "Show non trovato o non autorizzato")
-    res.status(204).send()
+      res.status(200).json({ message: "Spettacolo eliminato con successo." })
   } catch (error) {
     next(error)
   }
