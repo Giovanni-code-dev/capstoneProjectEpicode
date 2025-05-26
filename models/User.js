@@ -17,6 +17,42 @@ const UserSchema = new Schema(
     name: {
       type: String,
     },
+    avatar: {
+      type: String,
+      trim: true
+    },
+    bio: {
+      type: String,
+      trim: true
+    },
+    telefono: {
+      type: String,
+      trim: true
+    },
+    website: {
+      type: String,
+      trim: true
+    },
+    instagram: {
+      type: String,
+      trim: true
+    },
+    facebook: {
+      type: String,
+      trim: true
+    },
+    youtube: {
+      type: String,
+      trim: true
+    },
+    portfolio: {
+      type: String,
+      trim: true
+    },
+    tiktok: {
+      type: String,
+      trim: true
+    },
     location: {
       city: { type: String, required: true },
       address: { type: String, required: true },
@@ -25,16 +61,21 @@ const UserSchema = new Schema(
         lng: { type: Number, required: true }
       }
     },
+    categories: {
+      type: [String],
+      enum: ["danza aerea", "trampoli", "giocoleria", "mimo", "fuoco", "altro"],
+      default: []
+    },
     role: {
       type: String,
-      enum: ["admin", "artist", "viewer"], // ✅ aggiunto
+      enum: ["admin", "artist", "viewer"], // aggiunto
       default: "viewer",
     }
   },
   { timestamps: true }
 )
 
-// 🔐 Hash della password prima del salvataggio
+// Hash della password prima del salvataggio
 UserSchema.pre("save", async function (next) {
   const user = this
 

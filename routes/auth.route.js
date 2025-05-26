@@ -8,7 +8,7 @@ const router = express.Router()
 router.post("/register", register)
 router.post("/login", login)
 
-// ✅ Profilo dell'utente autenticato
+// Profilo dell'utente autenticato
 router.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const user = await UserModel.findById(req.user._id).select("-password")

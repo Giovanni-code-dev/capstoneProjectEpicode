@@ -1,31 +1,26 @@
 import express from "express"
 import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
 import { viewerOnly } from "../middleware/roleMiddleware.js"
-import { updateUserLocation } from "../services/locationService.js"
+import { getUserLocation, updateUserLocation } from "../services/locationService.js"
 import UserModel from "../models/User.js"
+import { getDashboardMessage } from "../services/dashboardService.js"
+import { getUserProfile, updateUserProfile } from "../services/profileService.js"
 
 const router = express.Router()
 
-router.get("/profile", JWTAuthMiddleware, viewerOnly, (req, res) => {
-  res.json({
-    message: `Benvenuto viewer! Il tuo ID è ${req.user._id}`,
-    role: req.user.role,
-  })
-})
+//usa la funzione condivisa per prendere i dati dashboard di viewer
+router.get("/dashboard", JWTAuthMiddleware, viewerOnly, getDashboardMessage)
 
-router.get("/location", JWTAuthMiddleware, viewerOnly, async (req, res, next) => {
-  try {
-    const user = await UserModel.findById(req.user._id).select("location")
-    if (!user || !user.location) {
-      return res.status(404).json({ message: "Nessuna posizione salvata." })
-    }
-    res.json({ location: user.location })
-  } catch (error) {
-    next(error)
-  }
-})
+//usa la funzione per prendere tutti i dati profile
+router.get("/profile", JWTAuthMiddleware, viewerOnly, getUserProfile)
 
-// ✅ usa la funzione condivisa
+//usa la funzione condivisa per prendere i dati location
+router.get("/location", JWTAuthMiddleware, viewerOnly, getUserLocation)
+
+//usa la funzione condivisa per update location
 router.put("/update-location", JWTAuthMiddleware, viewerOnly, updateUserLocation)
+
+//usa la funzione condivisa per update profile
+router.put("/update-profile", JWTAuthMiddleware, viewerOnly, updateUserProfile)
 
 export default router

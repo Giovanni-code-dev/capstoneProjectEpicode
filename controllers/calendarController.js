@@ -47,7 +47,7 @@ export const deleteCalendarEntry = async (req, res, next) => {
       })
   
       // Log in console
-      console.log(`🗑 Calendario: ${req.user.name || req.user.email} ha rimosso la data del ${formattedDate}`)
+      console.log(`Calendario: ${req.user.name || req.user.email} ha rimosso la data del ${formattedDate}`)
   
       res.status(200).json({
         message: `La data del ${formattedDate} è stata rimossa dal calendario.`,

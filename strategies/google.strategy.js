@@ -1,5 +1,6 @@
 import dotenv from "dotenv"
 dotenv.config()
+
 import passport from "passport"
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
 import UserModel from "../models/User.js"
@@ -20,17 +21,26 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
-        const existing = await UserModel.findOne({ email: profile.emails[0].value })
+        const email = profile.emails[0].value
+        const displayName = profile.displayName
+        const avatar = profile.photos?.[0]?.value || "" // ✅ nuovo campo
+
+        const existing = await UserModel.findOne({ email })
 
         if (existing) {
-          const token = await createAccessToken({ _id: existing._id, role: existing.role })
+          const token = await createAccessToken({
+            _id: existing._id,
+            role: existing.role,
+            name: existing.name
+          })
           return cb(null, { token })
         }
 
         const newUser = new UserModel({
-          email: profile.emails[0].value,
-          name: profile.displayName,
-          password: "google-oauth",
+          email,
+          name: displayName,
+          avatar, // ✅ salva immagine
+          password: "google-oauth", // placeholder
           role: "viewer",
           location: {
             city: "da completare",
@@ -41,7 +51,12 @@ passport.use(
 
         await newUser.save()
 
-        const token = await createAccessToken({ _id: newUser._id, role: newUser.role })
+        const token = await createAccessToken({
+          _id: newUser._id,
+          role: newUser.role,
+          name: newUser.name
+        })
+
         return cb(null, { token })
       } catch (error) {
         return cb(error)
