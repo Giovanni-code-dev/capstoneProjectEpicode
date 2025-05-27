@@ -25,11 +25,11 @@ const PackageSchema = new Schema(
       }
     ],
     shows: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: "Show",
-        }
-      ],
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Show",
+      }
+    ],
     artist: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -38,5 +38,8 @@ const PackageSchema = new Schema(
   },
   { timestamps: true }
 )
+
+// 📌 Indice per recuperare pacchetti di un artista
+PackageSchema.index({ artist: 1 })
 
 export default model("Package", PackageSchema)

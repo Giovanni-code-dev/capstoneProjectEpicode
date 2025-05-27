@@ -20,7 +20,10 @@ const LikeSchema = new Schema(
   { timestamps: true }
 )
 
-// 🔒 Impedisce che lo stesso utente metta like più volte allo stesso oggetto
+// 🔒 Impedisce like doppi dello stesso utente
 LikeSchema.index({ user: 1, targetType: 1, targetId: 1 }, { unique: true })
+
+// ⚡ Ottimizza conteggi per target
+LikeSchema.index({ targetType: 1, targetId: 1 })
 
 export default model("Like", LikeSchema)

@@ -116,8 +116,6 @@ export const updatePackageImages = async (req, res, next) => {
   }
 }
 
-import {  } from "../utils/cloudinaryUploader.js"
-
 export const deletePackageImage = async (req, res, next) => {
   try {
     const { id, index } = req.params

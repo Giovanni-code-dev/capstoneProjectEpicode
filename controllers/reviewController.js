@@ -47,6 +47,7 @@ export const createReview = async (req, res, next) => {
   }
 }
 
+// TUTTE LE RECENSIONI DI UN ARTISTA
 export const getReviewsForArtist = async (req, res, next) => {
   try {
     const reviews = await ReviewModel.find({ artist: req.params.artistId })
@@ -58,6 +59,7 @@ export const getReviewsForArtist = async (req, res, next) => {
   }
 }
 
+// MODIFICA RECENSIONE
 export const updateReview = async (req, res, next) => {
   try {
     const { rating, comment } = req.body
@@ -79,6 +81,7 @@ export const updateReview = async (req, res, next) => {
   }
 }
 
+// ELIMINA RECENSIONE
 export const deleteReview = async (req, res, next) => {
   try {
     const deleted = await ReviewModel.findOneAndDelete({
@@ -93,3 +96,20 @@ export const deleteReview = async (req, res, next) => {
     next(error)
   }
 }
+
+// 🔍 NUOVA FUNZIONE: RECENSIONI PROPRIE
+export const getMyReviews = async (req, res, next) => {
+  try {
+    const reviews = await ReviewModel.find({ user: req.user._id })
+      .populate("artist", "name avatar")
+      .sort({ createdAt: -1 })
+
+    res.json({
+      count: reviews.length,
+      reviews
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+

@@ -11,6 +11,8 @@ import viewerRouter from "./viewer.route.js"
 import adminRouter from "./admin.route.js"
 import requestRouter from "./request.route.js"
 import calendarRouter from "./calendar.route.js"
+import likeRouter from "./like.route.js" // Importa il router
+import statsRouter from "./stats.route.js"
 
 import reviewRouter from "./review.route.js"
 
@@ -20,6 +22,7 @@ import reviewRouter from "./review.route.js"
 // /auth → login, register
 router.use("/auth", authRouter)
 router.use("/auth", authGoogleRouter)
+router.use("/likes", likeRouter) // ✅ ATTIVA LE ROTTE LIKE
 
 // /admin → profilo admin
 router.use("/admin", adminRouter)
@@ -48,5 +51,7 @@ router.use("/calendar", calendarRouter)
 
 router.use("/reviews", reviewRouter)
 
+
+router.use("/stats", statsRouter)
 
 export default router

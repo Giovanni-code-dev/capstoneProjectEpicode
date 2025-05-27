@@ -3,7 +3,8 @@ import {
   createReview,
   getReviewsForArtist,
   updateReview,
-  deleteReview
+  deleteReview,
+  getMyReviews // ⬅️ Importa anche questa funzione
 } from "../controllers/reviewController.js"
 
 import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
@@ -24,6 +25,9 @@ router.patch("/:id", JWTAuthMiddleware, viewerOnly, updateReview)
 
 // Viewer → elimina la propria recensione
 router.delete("/:id", JWTAuthMiddleware, viewerOnly, deleteReview)
+
+// Viewer → ottieni tutte le recensioni scritte da te
+router.get("/me", JWTAuthMiddleware, viewerOnly, getMyReviews)
 
 // Pubblico → tutte le recensioni di un artista
 router.get("/artist/:artistId", getReviewsForArtist)

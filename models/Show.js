@@ -36,4 +36,7 @@ const ShowSchema = new Schema(
   { timestamps: true }
 )
 
+// 📌 Indice utile per recuperare tutti gli show di un artista
+ShowSchema.index({ artist: 1 })
+
 export default model("Show", ShowSchema)

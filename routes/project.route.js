@@ -12,10 +12,10 @@ import { artistOnly } from "../middleware/roleMiddleware.js"
 
 const router = express.Router()
 
-// 🟢 Rotta pubblica: tutti i progetti di un artista (visibile anche ai visitatori)
+// Rotta pubblica: tutti i progetti di un artista (visibile anche ai visitatori)
 router.get("/artist/:artistId", getProjectsByArtistId)
 
-// 🔐 Rotte private (solo per artisti loggati)
+// Rotte private (solo per artisti loggati)
 router.use(JWTAuthMiddleware, artistOnly)
 
 router.post("/", createProject)

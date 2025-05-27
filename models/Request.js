@@ -18,7 +18,7 @@ const RequestSchema = new Schema(
         ref: "Package",
       },
     ],
-    shows: [  // ✅ ora può contenere più di uno show
+    shows: [
       {
         type: Schema.Types.ObjectId,
         ref: "Show",
@@ -40,11 +40,22 @@ const RequestSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "accepted", "declined"], // ✅ enum lato server
+      enum: ["pending", "accepted", "declined"],
       default: "pending",
     },
   },
   { timestamps: true }
 )
+
+// 📌 Indici utili
+
+// Viewer: recupera le proprie richieste
+RequestSchema.index({ user: 1 })
+
+// Artista: recupera richieste ricevute per status
+RequestSchema.index({ artist: 1, status: 1 })
+
+// Per verifica disponibilità di data
+RequestSchema.index({ artist: 1, date: 1, status: 1 })
 
 export default model("Request", RequestSchema)

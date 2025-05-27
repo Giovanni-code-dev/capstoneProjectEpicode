@@ -13,4 +13,15 @@ const ReviewSchema = new Schema(
   { timestamps: true }
 )
 
+// 🔍 Indici per performance e unicità
+
+// ⚡ Per query: getReviewsForArtist
+ReviewSchema.index({ artist: 1 })
+
+// ⚡ Per query: getMyReviews
+ReviewSchema.index({ user: 1 })
+
+// 🔒 Un utente può recensire una richiesta una sola volta
+ReviewSchema.index({ request: 1 }, { unique: true })
+
 export default model("Review", ReviewSchema)
