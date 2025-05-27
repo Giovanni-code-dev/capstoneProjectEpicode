@@ -5,6 +5,7 @@ import UserModel from "../models/User.js"
 import RequestModel from "../models/Request.js"
 import { getDashboardMessage } from "../services/dashboardService.js"
 import { getUserProfile, updateUserProfile } from "../services/profileService.js"
+import upload from "../config/upload.js"
 
 
 const router = express.Router()
@@ -49,6 +50,6 @@ router.get("/users", JWTAuthMiddleware, adminOnly, async (req, res, next) => {
   })
 
   // Rotta per aggiornare profilo admin
-router.put("/update-profile", JWTAuthMiddleware, adminOnly, updateUserProfile)
+router.patch("/update-profile", JWTAuthMiddleware, adminOnly, upload.single("avatar"),updateUserProfile)
 
 export default router

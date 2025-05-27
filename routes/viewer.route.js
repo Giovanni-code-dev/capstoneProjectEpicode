@@ -5,6 +5,7 @@ import { getUserLocation, updateUserLocation } from "../services/locationService
 import UserModel from "../models/User.js"
 import { getDashboardMessage } from "../services/dashboardService.js"
 import { getUserProfile, updateUserProfile } from "../services/profileService.js"
+import upload from "../config/upload.js"
 
 const router = express.Router()
 
@@ -21,6 +22,7 @@ router.get("/location", JWTAuthMiddleware, viewerOnly, getUserLocation)
 router.put("/update-location", JWTAuthMiddleware, viewerOnly, updateUserLocation)
 
 //usa la funzione condivisa per update profile
-router.put("/update-profile", JWTAuthMiddleware, viewerOnly, updateUserProfile)
+router.patch("/update-profile",JWTAuthMiddleware,viewerOnly,upload.single("avatar"),updateUserProfile)
+  
 
 export default router

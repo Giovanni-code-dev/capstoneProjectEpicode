@@ -17,9 +17,13 @@ const PackageSchema = new Schema(
       type: Number,
       default: 30,
     },
-    image: {
-      type: String, // URL immagine (es. Cloudinary o link esterno)
-    },
+    images: [
+      {
+        url: String,
+        public_id: String,
+        isCover: { type: Boolean, default: false }
+      }
+    ],
     shows: [
         {
           type: Schema.Types.ObjectId,

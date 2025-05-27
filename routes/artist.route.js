@@ -1,11 +1,15 @@
 import express from "express"
-import { getPublicArtistProfile, searchArtistsByFilters } from "../services/artistService.js"
+import { getPublicArtistProfile, searchArtistsByFilters, getHighlightedArtists } from "../services/artistService.js"
 import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
 import { artistOnly } from "../middleware/roleMiddleware.js"
 import { getUserLocation, updateUserLocation } from "../services/locationService.js"
 import UserModel from "../models/User.js"
 import { getDashboardMessage } from "../services/dashboardService.js"
 import { getUserProfile, updateUserProfile } from "../services/profileService.js"
+import upload from "../config/upload.js"
+
+
+
 
 
 const router = express.Router()
@@ -29,7 +33,10 @@ router.get("/location", JWTAuthMiddleware, artistOnly, getUserLocation)
 router.put("/update-location", JWTAuthMiddleware, artistOnly, updateUserLocation)
 
 // usa la funzione condivisa per update profile
-router.put("/update-profile", JWTAuthMiddleware, artistOnly, updateUserProfile)
+router.patch("/update-profile", JWTAuthMiddleware, artistOnly, upload.single("avatar"),updateUserProfile)
+
+
+router.get("/highlighted", getHighlightedArtists)
 
 
 export default router

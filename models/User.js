@@ -68,7 +68,7 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "artist", "viewer"], // aggiunto
+      enum: ["admin", "artist", "viewer"],
       default: "viewer",
     }
   },

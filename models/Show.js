@@ -20,9 +20,13 @@ const ShowSchema = new Schema(
       type: Number,
       default: 30,
     },
-    image: {
-      type: String, // URL Cloudinary o simile
-    },
+    images: [
+      {
+        url: String,
+        public_id: String,
+        isCover: { type: Boolean, default: false }
+      }
+    ],
     artist: {
       type: Schema.Types.ObjectId,
       ref: "User",

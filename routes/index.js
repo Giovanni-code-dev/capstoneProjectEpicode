@@ -12,6 +12,9 @@ import adminRouter from "./admin.route.js"
 import requestRouter from "./request.route.js"
 import calendarRouter from "./calendar.route.js"
 
+import reviewRouter from "./review.route.js"
+
+
 // ✅ Ordine corretto dei router.use()
 
 // /auth → login, register
@@ -41,5 +44,9 @@ router.use("/requests", requestRouter)
 
 // /calendar → calendario
 router.use("/calendar", calendarRouter)
+
+
+router.use("/reviews", reviewRouter)
+
 
 export default router
