@@ -1,19 +1,20 @@
 import ShowModel from "../models/Show.js"
 import createHttpError from "http-errors"
-import cloudinary from "../config/cloudinary.js"
-import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
+import { deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
+import { uploadMultipleImages } from "../utils/imageUploader.js"
+
 
 export const createShow = async (req, res, next) => {
   try {
     let imageInfos = []
 
-    if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(file =>
-        uploadToCloudinary(file.buffer, "shows")
-      )
-
-      const results = await Promise.all(uploadPromises)
-      imageInfos = results.map(r => ({ url: r.secure_url, public_id: r.public_id }))
+    if (req.files?.length) {
+      const results = await uploadMultipleImages(req.files, "shows")
+      imageInfos = results.map((r, i) => ({
+        url: r.url,
+        public_id: r.public_id,
+        isCover: i === 0
+      }))
     }
 
     const newShow = new ShowModel({
@@ -28,6 +29,7 @@ export const createShow = async (req, res, next) => {
     next(error)
   }
 }
+
 
 export const updateShow = async (req, res, next) => {
   try {
@@ -47,7 +49,7 @@ export const deleteShow = async (req, res, next) => {
   try {
     const deleted = await ShowModel.findOneAndDelete({
       _id: req.params.id,
-      artist: req.user._id,
+      artist: req.user._id
     })
     if (!deleted) throw createHttpError(404, "Show non trovato o non autorizzato")
     res.status(200).json({ message: "Spettacolo eliminato con successo." })
@@ -58,8 +60,7 @@ export const deleteShow = async (req, res, next) => {
 
 export const getShowsByArtistId = async (req, res, next) => {
   try {
-    const { artistId } = req.params
-    const shows = await ShowModel.find({ artist: artistId })
+    const shows = await ShowModel.find({ artist: req.params.artistId })
     res.json(shows)
   } catch (error) {
     next(error)
@@ -82,13 +83,13 @@ export const updateShowImages = async (req, res, next) => {
 
     let newImages = []
 
-    if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(file =>
-        uploadToCloudinary(file.buffer, "shows")
-      )
-
-      const results = await Promise.all(uploadPromises)
-      newImages = results.map(r => ({ url: r.secure_url, public_id: r.public_id }))
+    if (req.files?.length) {
+      const results = await uploadMultipleImages(req.files, "shows")
+      newImages = results.map(r => ({
+        url: r.url,
+        public_id: r.public_id,
+        isCover: false
+      }))
     }
 
     show.images = [...show.images, ...newImages]
@@ -103,15 +104,11 @@ export const updateShowImages = async (req, res, next) => {
   }
 }
 
+
 export const deleteShowImage = async (req, res, next) => {
   try {
     const { id, index } = req.params
-
-    const show = await ShowModel.findOne({
-      _id: id,
-      artist: req.user._id
-    })
-
+    const show = await ShowModel.findOne({ _id: id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
 
     const imgIndex = parseInt(index)
@@ -120,7 +117,6 @@ export const deleteShowImage = async (req, res, next) => {
     }
 
     const removedImage = show.images.splice(imgIndex, 1)[0]
-
     if (removedImage?.public_id) {
       await deleteFromCloudinary(removedImage.public_id)
     }

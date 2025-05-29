@@ -1,20 +1,20 @@
 import PackageModel from "../models/Package.js"
 import createHttpError from "http-errors"
-import cloudinary from "../config/cloudinary.js"
-import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
+import { deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
+import { uploadMultipleImages } from "../utils/imageUploader.js"
 
 // 📦 Crea un nuovo pacchetto con immagini multiple
 export const createPackage = async (req, res, next) => {
   try {
     let imageUrls = []
 
-    if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(file =>
-        uploadToCloudinary(file.buffer, "packages")
-      )
-
-      const results = await Promise.all(uploadPromises)
-      imageUrls = results.map(r => r.secure_url)
+    if (req.files?.length) {
+      const results = await uploadMultipleImages(req.files, "packages")
+      imageUrls = results.map(r => ({
+        url: r.url,
+        public_id: r.public_id,
+        isCover: false
+      }))
     }
 
     const newPackage = new PackageModel({
@@ -29,6 +29,7 @@ export const createPackage = async (req, res, next) => {
     next(error)
   }
 }
+
 
 export const getMyPackages = async (req, res, next) => {
   try {
@@ -57,7 +58,7 @@ export const deletePackage = async (req, res, next) => {
   try {
     const deleted = await PackageModel.findOneAndDelete({
       _id: req.params.id,
-      artist: req.user._id,
+      artist: req.user._id
     })
     if (!deleted) throw createHttpError(404, "Pacchetto non trovato o non autorizzato")
     res.status(204).send()
@@ -68,8 +69,7 @@ export const deletePackage = async (req, res, next) => {
 
 export const getPackagesByArtistId = async (req, res, next) => {
   try {
-    const { artistId } = req.params
-    const packages = await PackageModel.find({ artist: artistId }).populate("shows")
+    const packages = await PackageModel.find({ artist: req.params.artistId }).populate("shows")
     res.json(packages)
   } catch (error) {
     next(error)
@@ -78,8 +78,7 @@ export const getPackagesByArtistId = async (req, res, next) => {
 
 export const getPackageById = async (req, res, next) => {
   try {
-    const { id } = req.params
-    const found = await PackageModel.findById(id).populate("shows")
+    const found = await PackageModel.findById(req.params.id).populate("shows")
     if (!found) throw createHttpError(404, "Pacchetto non trovato")
     res.json(found)
   } catch (error) {
@@ -94,16 +93,15 @@ export const updatePackageImages = async (req, res, next) => {
 
     let imageUrls = []
 
-    if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(file =>
-        uploadToCloudinary(file.buffer, "packages")
-      )
-
-      const results = await Promise.all(uploadPromises)
-      imageUrls = results.map(r => r.secure_url)
+    if (req.files?.length) {
+      const results = await uploadMultipleImages(req.files, "packages")
+      imageUrls = results.map(r => ({
+        url: r.url,
+        public_id: r.public_id,
+        isCover: false
+      }))
     }
 
-    // Aggiorna le immagini con spread
     pack.images = [...pack.images, ...imageUrls]
     await pack.save()
 
@@ -116,15 +114,11 @@ export const updatePackageImages = async (req, res, next) => {
   }
 }
 
+
 export const deletePackageImage = async (req, res, next) => {
   try {
     const { id, index } = req.params
-
-    const pack = await PackageModel.findOne({
-      _id: id,
-      artist: req.user._id
-    })
-
+    const pack = await PackageModel.findOne({ _id: id, artist: req.user._id })
     if (!pack) throw createHttpError(404, "Pacchetto non trovato o non autorizzato")
 
     const imgIndex = parseInt(index)
@@ -133,7 +127,6 @@ export const deletePackageImage = async (req, res, next) => {
     }
 
     const removedImage = pack.images.splice(imgIndex, 1)[0]
-
     if (removedImage?.public_id) {
       await deleteFromCloudinary(removedImage.public_id)
     }

@@ -1,51 +1,18 @@
 import { Schema, model } from "mongoose"
 
-const RequestSchema = new Schema(
-  {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    artist: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    packages: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Package",
-      },
-    ],
-    shows: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Show",
-      }
-    ],
-    location: {
-      address: String,
-      city: String,
-    },
-    distanceKm: {
-      type: Number,
-    },
-    date: {
-      type: Date,
-      required: true,
-    },
-    message: {
-      type: String,
-    },
-    status: {
-      type: String,
-      enum: ["pending", "accepted", "declined"],
-      default: "pending",
-    },
-  },
-  { timestamps: true }
-)
+const RequestSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+  artist: { type: Schema.Types.ObjectId, ref: "Artist", required: true },
+  packages: [{ type: Schema.Types.ObjectId, ref: "Package" }],
+  shows: [{ type: Schema.Types.ObjectId, ref: "Show" }],
+  location: { address: String, city: String },
+  distanceKm: { type: Number },
+  date: { type: Date, required: true },
+  message: { type: String },
+  status: { type: String, enum: ["pending", "accepted", "declined"], default: "pending" }
+}, { timestamps: true })
+
+
 
 // 📌 Indici utili
 

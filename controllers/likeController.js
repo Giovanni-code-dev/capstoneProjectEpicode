@@ -1,35 +1,25 @@
 import LikeModel from "../models/Like.js"
 import createHttpError from "http-errors"
-import UserModel from "../models/User.js"
-import ShowModel from "../models/Show.js"
-import PackageModel from "../models/Package.js"
 
 // 🔹 1. Aggiungi un like
 export const addLike = async (req, res, next) => {
   try {
     const { targetType, targetId } = req.body
 
-    // Validazione base
+    if (!targetType || !targetId) {
+      throw createHttpError(400, "targetType e targetId sono obbligatori")
+    }
+
     if (!["artist", "show", "package"].includes(targetType)) {
       throw createHttpError(400, "Tipo non valido")
     }
 
-    // Evita duplicati
-    const alreadyLiked = await LikeModel.findOne({
-      user: req.user._id,
-      targetType,
-      targetId
-    })
+    const existing = await LikeModel.findOne({ user: req.user._id, targetType, targetId })
+    if (existing) throw createHttpError(409, "Hai già messo like")
 
-    if (alreadyLiked) throw createHttpError(409, "Hai già messo like")
+    const newLike = new LikeModel({ user: req.user._id, targetType, targetId })
+    await newLike.save()
 
-    const like = new LikeModel({
-      user: req.user._id,
-      targetType,
-      targetId
-    })
-
-    await like.save()
     res.status(201).json({ message: "Like aggiunto" })
   } catch (error) {
     next(error)
@@ -41,48 +31,45 @@ export const removeLike = async (req, res, next) => {
   try {
     const { targetType, targetId } = req.params
 
-    await LikeModel.findOneAndDelete({
+    const deleted = await LikeModel.findOneAndDelete({
       user: req.user._id,
       targetType,
       targetId
     })
 
-    res.status(200).json({ message: "Like rimosso" })
+    if (!deleted) throw createHttpError(404, "Like non trovato")
+
+    res.json({ message: "Like rimosso" })
   } catch (error) {
     next(error)
   }
 }
 
-// 🔹 3. Conta i like ricevuti da un oggetto
+// 🔹 3. Conta i like di un elemento
 export const getLikeCount = async (req, res, next) => {
   try {
-    const count = await LikeModel.countDocuments({
-      targetType: req.params.targetType,
-      targetId: req.params.targetId
-    })
+    const { targetType, targetId } = req.params
 
+    const count = await LikeModel.countDocuments({ targetType, targetId })
     res.json({ count })
   } catch (error) {
     next(error)
   }
 }
 
-// 🔹 4. Verifica se l'utente loggato ha messo like
+// 🔹 4. Verifica se l'utente ha messo like
 export const isLikedByMe = async (req, res, next) => {
   try {
-    const like = await LikeModel.findOne({
-      user: req.user._id,
-      targetType: req.params.targetType,
-      targetId: req.params.targetId
-    })
+    const { targetType, targetId } = req.params
 
+    const like = await LikeModel.findOne({ user: req.user._id, targetType, targetId })
     res.json({ liked: !!like })
   } catch (error) {
     next(error)
   }
 }
 
-// 🔹 5. Recupera tutti i like messi dall'utente loggato (filtrabile per tipo)
+// 🔹 5. Recupera tutti i like messi dall'utente
 export const getMyLikes = async (req, res, next) => {
   try {
     const filter = { user: req.user._id }
@@ -94,14 +81,14 @@ export const getMyLikes = async (req, res, next) => {
       filter.targetType = req.query.type
     }
 
-    const populateOptions = {
-      artist: { path: "targetId", model: "User", select: "name avatar role" },
+    const populateMap = {
+      artist: { path: "targetId", model: "Artist", select: "name avatar" },
       show: { path: "targetId", model: "Show", select: "title images" },
-      package: { path: "targetId", model: "Package", select: "title images" },
+      package: { path: "targetId", model: "Package", select: "title images" }
     }
 
     const likes = await LikeModel.find(filter).populate(
-      req.query.type ? populateOptions[req.query.type] : ""
+      req.query.type ? populateMap[req.query.type] : ""
     )
 
     res.json(likes)
