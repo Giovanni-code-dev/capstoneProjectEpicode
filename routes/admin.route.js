@@ -7,10 +7,7 @@ import { getDashboardMessage } from "../services/dashboardService.js"
 import { getUserProfile, updateUserProfile } from "../services/profileService.js"
 import upload from "../config/upload.js"
 
-
 const router = express.Router()
-
-
 
 // usa la funzione condivisa prendere i dati dashboard di admin
 router.get("/dashboard", JWTAuthMiddleware, adminOnly, getDashboardMessage)

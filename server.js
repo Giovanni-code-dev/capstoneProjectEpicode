@@ -6,13 +6,13 @@ import dotenv from "dotenv"
 import createHttpError from "http-errors"
 import passport from "passport"
 
-// ✅ Carica le variabili prima di tutto
+// Carica le variabili prima di tutto
 dotenv.config()
 
-// ✅ Crea l'app dopo dotenv
+// Crea l'app dopo dotenv
 const app = express()
 
-// ✅ Inizializza passport DOPO express
+// Inizializza passport DOPO express
 app.use(passport.initialize())
 
 // ROUTES
@@ -28,7 +28,7 @@ app.use("/", routes)
 
 // ROTTA DI TEST
 app.get("/", (req, res) => {
-  res.send("Server attivo! 🎭")
+  res.send("Server attivo!")
 })
 
 // 404

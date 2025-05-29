@@ -16,14 +16,14 @@ import upload from "../config/upload.js"
 
 const router = express.Router()
 
-// 🟢 Rotte pubbliche
+//  Rotte pubbliche
 router.get("/artist/:artistId", getPackagesByArtistId)
 router.get("/:id", getPackageById)
 
-// 🔒 Tutte le rotte sotto richiedono autenticazione + artista
+//  Tutte le rotte sotto richiedono autenticazione + artista
 router.use(JWTAuthMiddleware, artistOnly)
 
-// 🔐 Rotte private (protette da middleware sopra)
+//  Rotte private (protette da middleware sopra)
 router.post("/", upload.array("images", 5), createPackage)
 router.get("/", getMyPackages)
 router.put("/:id", updatePackage)

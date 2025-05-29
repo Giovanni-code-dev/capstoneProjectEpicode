@@ -15,13 +15,13 @@ import upload from "../config/upload.js"
 
 const router = express.Router()
 
-// 🟢 Rotta pubblica: mostra tutti gli show di un artista
+// Rotta pubblica: mostra tutti gli show di un artista
 router.get("/artist/:artistId", getShowsByArtistId)
 
-// 🔐 Tutte le rotte da qui in giù richiedono JWT + artista
+// Tutte le rotte da qui in giù richiedono JWT + artista
 router.use(JWTAuthMiddleware, artistOnly)
 
-// 🎭 Rotte private
+// Rotte private
 router.post("/", upload.array("images", 5), createShow)
 router.get("/", getMyShows)
 router.put("/:id", updateShow)

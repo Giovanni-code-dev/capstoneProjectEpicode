@@ -23,7 +23,7 @@ passport.use(
       try {
         const email = profile.emails[0].value
         const displayName = profile.displayName
-        const avatar = profile.photos?.[0]?.value || "" // ✅ nuovo campo
+        const avatar = profile.photos?.[0]?.value || "" // nuovo campo
 
         const existing = await UserModel.findOne({ email })
 
@@ -39,7 +39,7 @@ passport.use(
         const newUser = new UserModel({
           email,
           name: displayName,
-          avatar, // ✅ salva immagine
+          avatar, // salva immagine
           password: "google-oauth", // placeholder
           role: "viewer",
           location: {
