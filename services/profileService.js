@@ -1,20 +1,39 @@
-import UserModel from "../models/User.js"
 import createHttpError from "http-errors"
 import cloudinary from "../config/cloudinary.js"
 import path from "path"
-import { uploadToCloudinary } from "../utils/cloudinaryUploader.js" // 👈 nuovo import
+import { uploadToCloudinary } from "../utils/cloudinaryUploader.js"
 
-// Recupera profilo utente (senza password)
+import Artist from "../models/Artist.js"
+import Customer from "../models/Customer.js"
+import Admin from "../models/Admin.js"
+
+// Funzione helper per mappare userType al modello corretto
+const getModelByUserType = (type) => {
+  switch (type) {
+    case "Artist":
+      return Artist
+    case "Customer":
+      return Customer
+    case "Admin":
+      return Admin
+    default:
+      throw new Error("Tipo utente sconosciuto")
+  }
+}
+
+// 🔍 Recupera il profilo utente (senza password)
 export const getUserProfile = async (req, res, next) => {
   try {
-    const user = await UserModel.findById(req.user._id).select("-password")
+    const Model = getModelByUserType(req.userType)
+    const user = await Model.findById(req.user._id).select("-password")
+
     if (!user) throw createHttpError(404, "Utente non trovato")
 
     res.json({
       _id: user._id,
       name: user.name,
-      role: user.role,
       email: user.email,
+      role: req.userType,
       avatar: user.avatar,
       bio: user.bio,
       telefono: user.telefono,
@@ -26,51 +45,44 @@ export const getUserProfile = async (req, res, next) => {
       tiktok: user.tiktok,
       location: user.location,
       categories: user.categories,
-      createdAt: user.createdAt,
+      createdAt: user.createdAt
     })
   } catch (error) {
     next(error)
   }
 }
 
-// Aggiorna campi base del profilo
+// Aggiorna il profilo utente
 export const updateUserProfile = async (req, res, next) => {
   try {
     const allowedFields = [
-      "name",
-      "bio",
-      "categories",
-      "telefono",
-      "website",
-      "instagram",
-      "facebook",
-      "youtube",
-      "portfolio",
-      "tiktok"
+      "name", "bio", "categories", "telefono", "website",
+      "instagram", "facebook", "youtube", "portfolio", "tiktok"
     ]
 
     const updateData = {}
-
     for (const field of allowedFields) {
-      if (req.body[field]) {
-        updateData[field] = req.body[field]
-      }
+      if (req.body[field]) updateData[field] = req.body[field]
     }
 
-    if (req.file) {
-      const user = await UserModel.findById(req.user._id)
+    const Model = getModelByUserType(req.userType)
+    const user = await Model.findById(req.user._id)
 
-      // 🔥 Se ha già un avatar, distruggilo da Cloudinary
-      if (user.avatar && user.avatar.includes("res.cloudinary.com")) {
+    if (!user) throw createHttpError(404, "Utente non trovato")
+
+    // Se c'è un nuovo file avatar
+    if (req.file) {
+      // Se c'è già un avatar su Cloudinary → cancellalo
+      if (user.avatar?.includes("res.cloudinary.com")) {
         const url = new URL(user.avatar)
         const parts = url.pathname.split("/")
-        const public_id = parts.slice(3, parts.length - 1).join("/") + "/" + path.basename(parts.at(-1), path.extname(parts.at(-1)))
+        const public_id = parts.slice(3, -1).join("/") + "/" + path.basename(parts.at(-1), path.extname(parts.at(-1)))
 
         await cloudinary.uploader.destroy(public_id)
       }
 
-      // 📤 Upload nuovo avatar con utility
-      const folder = `users/avatar/${req.user.role}`
+      // Upload del nuovo avatar
+      const folder = `users/avatar/${req.userType}`
       const result = await uploadToCloudinary(req.file.buffer, folder, "image")
 
       updateData.avatar = result.secure_url
@@ -80,13 +92,11 @@ export const updateUserProfile = async (req, res, next) => {
       return res.status(400).json({ message: "Nessun campo valido da aggiornare." })
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(
+    const updatedUser = await Model.findByIdAndUpdate(
       req.user._id,
       updateData,
       { new: true }
     )
-
-    if (!updatedUser) throw createHttpError(404, "Utente non trovato")
 
     res.json({
       message: "Profilo aggiornato con successo!",

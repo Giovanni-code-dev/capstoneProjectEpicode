@@ -20,8 +20,14 @@ export const registerArtist = async (req, res, next) => {
 
     res.status(201).json({
       message: "Registrazione avvenuta con successo",
-      token
+      token,
+      artist: {
+        _id: newArtist._id,
+        name: newArtist.name,
+        email: newArtist.email
+      }
     })
+    
   } catch (error) {
     next(error)
   }

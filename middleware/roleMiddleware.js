@@ -1,16 +1,22 @@
 import createHttpError from "http-errors"
 
-export const adminOnly = (req, res, next) => {
-  if (req.user?.role === "admin") return next()
-  return next(createHttpError(403, "Accesso riservato agli admin."))
-}
-
 export const artistOnly = (req, res, next) => {
-  if (req.user?.role === "artist") return next()
-  return next(createHttpError(403, "Accesso riservato agli artisti."))
+  if (req.userType !== "Artist") {
+    return next(createHttpError(403, "Accesso riservato agli artisti"))
+  }
+  next()
 }
 
-export const viewerOnly = (req, res, next) => {
-  if (req.user?.role === "viewer") return next()
-  return next(createHttpError(403, "Accesso riservato ai viewer."))
+export const customerOnly = (req, res, next) => {
+  if (req.userType !== "Customer") {
+    return next(createHttpError(403, "Accesso riservato ai clienti"))
+  }
+  next()
+}
+
+export const adminOnly = (req, res, next) => {
+  if (req.userType !== "Admin") {
+    return next(createHttpError(403, "Accesso riservato agli admin"))
+  }
+  next()
 }

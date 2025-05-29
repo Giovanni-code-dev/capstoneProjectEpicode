@@ -8,7 +8,7 @@ import {
 } from "../controllers/requestController.js"
 
 import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
-import { artistOnly, viewerOnly } from "../middleware/roleMiddleware.js"
+import { artistOnly, customerOnly } from "../middleware/roleMiddleware.js"
 
 const router = express.Router()
 
@@ -16,8 +16,8 @@ const router = express.Router()
 router.use(JWTAuthMiddleware)
 
 // 👤 Viewer
-router.post("/", viewerOnly, createRequest)      // invia richiesta
-router.get("/me", viewerOnly, getMyRequests)     // lista proprie richieste
+router.post("/", customerOnly, createRequest)      // invia richiesta
+router.get("/me", customerOnly, getMyRequests)     // lista proprie richieste
 
 // 🎭 Artista
 router.get("/artist", artistOnly, getRequestsForArtist)           // ricevute

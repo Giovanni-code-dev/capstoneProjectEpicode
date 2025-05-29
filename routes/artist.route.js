@@ -3,13 +3,9 @@ import { getPublicArtistProfile, searchArtistsByFilters, getHighlightedArtists }
 import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
 import { artistOnly } from "../middleware/roleMiddleware.js"
 import { getUserLocation, updateUserLocation } from "../services/locationService.js"
-import UserModel from "../models/User.js"
 import { getDashboardMessage } from "../services/dashboardService.js"
 import { getUserProfile, updateUserProfile } from "../services/profileService.js"
 import upload from "../config/upload.js"
-
-
-
 
 
 const router = express.Router()

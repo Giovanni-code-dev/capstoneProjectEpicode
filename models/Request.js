@@ -49,7 +49,7 @@ const RequestSchema = new Schema(
 
 // 📌 Indici utili
 
-// Viewer: recupera le proprie richieste
+// Customer: recupera le proprie richieste
 RequestSchema.index({ user: 1 })
 
 // Artista: recupera richieste ricevute per status
