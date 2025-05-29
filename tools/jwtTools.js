@@ -13,12 +13,14 @@
  * Usato per autenticazione e autorizzazione nel backend.
  */
 
+
+/*
 import jwt from "jsonwebtoken"
 
 /**
  * Crea un token JWT firmato con il segreto
  * Contiene l'id utente e il ruolo, e dura 1 settimana
- */
+ 
 export const createAccessToken = (payload) =>
   new Promise((resolve, reject) =>
     jwt.sign(
@@ -34,7 +36,34 @@ export const createAccessToken = (payload) =>
 
 /**
  * Verifica la validità di un token JWT e restituisce il payload
- */
+ 
+export const verifyAccessToken = (token) =>
+  new Promise((resolve, reject) =>
+    jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
+      if (err) reject(err)
+      else resolve(payload)
+    })
+  )
+
+  */
+
+  import jwt from "jsonwebtoken"
+
+// Genera un token con _id e tipo di modello (Artist, Viewer, Admin)
+export const createAccessToken = (payload) =>
+  new Promise((resolve, reject) =>
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+      (err, token) => {
+        if (err) reject(err)
+        else resolve(token)
+      }
+    )
+  )
+
+// Verifica validità e decodifica il token
 export const verifyAccessToken = (token) =>
   new Promise((resolve, reject) =>
     jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {

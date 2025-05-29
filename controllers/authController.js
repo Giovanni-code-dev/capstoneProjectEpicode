@@ -28,7 +28,7 @@ export const register = async (req, res, next) => {
 
     // Verifica se l'email è già registrata
     const existingUser = await UserModel.findOne({ email })
-    if (existingUser) {
+    if (existingUser) { 
       throw createHttpError(409, "Email già registrata.")
     }
 

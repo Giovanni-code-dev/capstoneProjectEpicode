@@ -87,7 +87,7 @@ UserSchema.pre("save", async function (next) {
   next()
 })
 
-//  Metodo per confrontare password in fase di login
+// Metodo per confrontare password in fase di login
 UserSchema.methods.isPasswordCorrect = function (plainPwd) {
   return bcrypt.compare(plainPwd, this.password)
 }
