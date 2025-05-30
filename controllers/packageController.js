@@ -30,7 +30,7 @@ export const createPackage = async (req, res, next) => {
   }
 }
 
-
+// 📦 Restituisce tutti i pacchetti dell’artista loggato
 export const getMyPackages = async (req, res, next) => {
   try {
     const packages = await PackageModel.find({ artist: req.user._id }).populate("shows")
@@ -40,6 +40,19 @@ export const getMyPackages = async (req, res, next) => {
   }
 }
 
+// 🔐 Recupera un singolo pacchetto dell’artista loggato
+export const getMyPackageById = async (req, res, next) => {
+  try {
+    const pack = await PackageModel.findOne({ _id: req.params.id, artist: req.user._id }).populate("shows")
+    if (!pack) throw createHttpError(404, "Pacchetto non trovato o non autorizzato")
+    res.json(pack)
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+// 📦 Modifica un pacchetto esistente (se appartiene all’artista)
 export const updatePackage = async (req, res, next) => {
   try {
     const updated = await PackageModel.findOneAndUpdate(
@@ -54,6 +67,7 @@ export const updatePackage = async (req, res, next) => {
   }
 }
 
+// 📦 Elimina un pacchetto (se appartiene all’artista)
 export const deletePackage = async (req, res, next) => {
   try {
     const deleted = await PackageModel.findOneAndDelete({
@@ -67,6 +81,7 @@ export const deletePackage = async (req, res, next) => {
   }
 }
 
+// 📦 Restituisce tutti i pacchetti pubblici di un artista specifico
 export const getPackagesByArtistId = async (req, res, next) => {
   try {
     const packages = await PackageModel.find({ artist: req.params.artistId }).populate("shows")
@@ -76,6 +91,7 @@ export const getPackagesByArtistId = async (req, res, next) => {
   }
 }
 
+// 📦 Restituisce i dettagli di un pacchetto tramite ID
 export const getPackageById = async (req, res, next) => {
   try {
     const found = await PackageModel.findById(req.params.id).populate("shows")
@@ -86,6 +102,7 @@ export const getPackageById = async (req, res, next) => {
   }
 }
 
+// 📸 Aggiunge nuove immagini a un pacchetto esistente
 export const updatePackageImages = async (req, res, next) => {
   try {
     const pack = await PackageModel.findOne({ _id: req.params.id, artist: req.user._id })
@@ -114,7 +131,7 @@ export const updatePackageImages = async (req, res, next) => {
   }
 }
 
-
+// 🗑️ Rimuove una singola immagine da un pacchetto per indice
 export const deletePackageImage = async (req, res, next) => {
   try {
     const { id, index } = req.params
@@ -143,6 +160,7 @@ export const deletePackageImage = async (req, res, next) => {
   }
 }
 
+// 🔁 Riordina le immagini del pacchetto e imposta la copertina
 export const reorderImages = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -168,6 +186,28 @@ export const reorderImages = async (req, res, next) => {
       message: "Immagini pacchetto riordinate con successo",
       images: pack.images
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// 📸 Restituisce solo le immagini di un singolo pacchetto
+export const getPackageImages = async (req, res, next) => {
+  try {
+    const pack = await PackageModel.findById(req.params.id).select("images")
+    if (!pack) throw createHttpError(404, "Pacchetto non trovato")
+    res.json(pack.images)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// 📸 Restituisce tutte le immagini di tutti i pacchetti di un artista
+export const getAllPackageImagesByArtist = async (req, res, next) => {
+  try {
+    const packages = await PackageModel.find({ artist: req.params.artistId }).select("images")
+    const allImages = packages.flatMap(p => p.images)
+    res.json(allImages)
   } catch (error) {
     next(error)
   }

@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose"
 
 const RequestSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+  customer: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
   artist: { type: Schema.Types.ObjectId, ref: "Artist", required: true },
   packages: [{ type: Schema.Types.ObjectId, ref: "Package" }],
   shows: [{ type: Schema.Types.ObjectId, ref: "Show" }],
@@ -14,10 +14,10 @@ const RequestSchema = new Schema({
 
 
 
-// 📌 Indici utili
+// Indici utili
 
 // Customer: recupera le proprie richieste
-RequestSchema.index({ user: 1 })
+RequestSchema.index({ customer: 1 })
 
 // Artista: recupera richieste ricevute per status
 RequestSchema.index({ artist: 1, status: 1 })

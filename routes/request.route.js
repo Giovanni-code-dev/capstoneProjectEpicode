@@ -12,18 +12,18 @@ import { artistOnly, customerOnly } from "../middleware/roleMiddleware.js"
 
 const router = express.Router()
 
-// 🔐 Tutte le rotte richiedono autenticazione
+//  Tutte le rotte richiedono autenticazione
 router.use(JWTAuthMiddleware)
 
-// 👤 Viewer
+// 👤Viewer
 router.post("/", customerOnly, createRequest)      // invia richiesta
 router.get("/me", customerOnly, getMyRequests)     // lista proprie richieste
 
-// 🎭 Artista
+//  Artista
 router.get("/artist", artistOnly, getRequestsForArtist)           // ricevute
 router.patch("/:id/status", artistOnly, updateRequestStatus)      // cambia stato
 
-// 🔍 Dettaglio singola richiesta (accesso autenticato)
+//  Dettaglio singola richiesta (accesso autenticato)
 router.get("/:id", getRequestById)
 
 export default router

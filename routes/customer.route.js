@@ -1,27 +1,26 @@
 import express from "express"
 import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
 import { customerOnly } from "../middleware/roleMiddleware.js"
-import { getUserLocation, updateUserLocation } from "../services/locationService.js"
-import { getDashboardMessage } from "../services/dashboardService.js"
-import { getUserProfile, updateUserProfile } from "../services/profileService.js"
 import upload from "../config/upload.js"
+import {
+  getCustomerDashboard,
+  getCustomerProfile,
+  updateCustomerProfile,
+  getCustomerLocation,
+  updateCustomerLocation
+} from "../controllers/customerController.js"
 
 const router = express.Router()
 
-//usa la funzione condivisa per prendere i dati dashboard di viewer
-router.get("/dashboard", JWTAuthMiddleware, customerOnly, getDashboardMessage)
+// Dashboard
+router.get("/dashboard", JWTAuthMiddleware, customerOnly, getCustomerDashboard)
 
-//usa la funzione per prendere tutti i dati profile
-router.get("/profile", JWTAuthMiddleware, customerOnly, getUserProfile)
+// Profilo
+router.get("/profile", JWTAuthMiddleware, customerOnly, getCustomerProfile)
+router.patch("/update-profile", JWTAuthMiddleware, customerOnly, upload.single("avatar"), updateCustomerProfile)
 
-//usa la funzione condivisa per prendere i dati location
-router.get("/location", JWTAuthMiddleware, customerOnly, getUserLocation)
-
-//usa la funzione condivisa per update location
-router.put("/update-location", JWTAuthMiddleware, customerOnly, updateUserLocation)
-
-//usa la funzione condivisa per update profile
-router.patch("/update-profile",JWTAuthMiddleware,customerOnly,upload.single("avatar"),updateUserProfile)
-  
+// Geolocalizzazione
+router.get("/location", JWTAuthMiddleware, customerOnly, getCustomerLocation)
+router.put("/update-location", JWTAuthMiddleware, customerOnly, updateCustomerLocation)
 
 export default router

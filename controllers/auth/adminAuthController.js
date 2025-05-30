@@ -26,3 +26,4 @@ export const loginAdmin = async (req, res, next) => {
     next(error)
   }
 }
+

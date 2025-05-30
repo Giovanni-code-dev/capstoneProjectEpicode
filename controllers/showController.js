@@ -30,7 +30,6 @@ export const createShow = async (req, res, next) => {
   }
 }
 
-
 export const updateShow = async (req, res, next) => {
   try {
     const updated = await ShowModel.findOneAndUpdate(
@@ -39,7 +38,7 @@ export const updateShow = async (req, res, next) => {
       { new: true }
     )
     if (!updated) throw createHttpError(404, "Show non trovato o non autorizzato")
-    res.json(updated)
+    res.json(updated) 
   } catch (error) {
     next(error)
   }
@@ -53,6 +52,26 @@ export const deleteShow = async (req, res, next) => {
     })
     if (!deleted) throw createHttpError(404, "Show non trovato o non autorizzato")
     res.status(200).json({ message: "Spettacolo eliminato con successo." })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getShowById = async (req, res, next) => {
+  try {
+    const show = await ShowModel.findById(req.params.id)
+    if (!show) throw createHttpError(404, "Show non trovato")
+    res.json(show)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getMyShowById = async (req, res, next) => {
+  try {
+    const show = await ShowModel.findOne({ _id: req.params.id, artist: req.user._id })
+    if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
+    res.json(show)
   } catch (error) {
     next(error)
   }
@@ -76,15 +95,45 @@ export const getMyShows = async (req, res, next) => {
   }
 }
 
+export const getShowImages = async (req, res, next) => {
+  try {
+    const show = await ShowModel.findById(req.params.id).select("images")
+    if (!show) throw createHttpError(404, "Show non trovato")
+    res.json(show.images)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getAllShowImagesByArtist = async (req, res, next) => {
+  try {
+    const shows = await ShowModel.find({ artist: req.params.artistId }).select("images")
+
+    const allImages = shows.flatMap(show => show.images)
+
+    res.json(allImages)
+  } catch (error) {
+    next(error)
+  }
+}
+
+//Aggiungere una o più nuove immagini a uno show già esistente, salvandole su Cloudinary e aggiornando il database.
 export const updateShowImages = async (req, res, next) => {
   try {
     const show = await ShowModel.findOne({ _id: req.params.id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
 
-    let newImages = []
-
+//Prepara un array vuoto dove inseriAMO i dati delle nuove immagini.
+    let newImages = [] 
+//Se sono state caricate immagini (via multipart/form-data), chiama uploadMultipleImages
     if (req.files?.length) {
       const results = await uploadMultipleImages(req.files, "shows")
+  /*    
+    Mappa i risultati creando un oggetto immagine per ciascuna:
+    url: per mostrare l'immagine
+    public_id: per gestire la rimozione futura
+    isCover: false: tutte le immagini aggiunte non sono copertina (eventualmente la userai in seguito con reorderImages)
+  */
       newImages = results.map(r => ({
         url: r.url,
         public_id: r.public_id,
@@ -103,7 +152,6 @@ export const updateShowImages = async (req, res, next) => {
     next(error)
   }
 }
-
 
 export const deleteShowImage = async (req, res, next) => {
   try {
@@ -162,3 +210,4 @@ export const reorderImages = async (req, res, next) => {
     next(error)
   }
 }
+
