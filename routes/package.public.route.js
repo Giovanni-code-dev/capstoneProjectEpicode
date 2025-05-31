@@ -10,7 +10,7 @@ import {
 const router = express.Router()
 
 // ==============================
-// 📦 Rotte pubbliche - Pacchetti
+// Rotte pubbliche - Pacchetti
 // ==============================
 
 // Ottiene tutti i pacchetti pubblici di un artista specifico

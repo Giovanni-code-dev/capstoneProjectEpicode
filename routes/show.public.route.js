@@ -9,7 +9,7 @@ import {
 const router = express.Router()
 
 // =====================================================
-// 🎭 Rotte pubbliche - Shows
+// Rotte pubbliche - Shows
 // =====================================================
 
 // Recupera tutti gli spettacoli pubblici di un determinato artista
