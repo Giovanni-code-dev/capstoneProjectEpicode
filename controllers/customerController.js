@@ -4,17 +4,31 @@ import { getDashboardMessage } from "../services/dashboardService.js"
 import { getUserProfile, updateUserProfile } from "../services/profileService.js"
 import { getUserLocation, updateUserLocation } from "../services/locationService.js"
 
-// Dashboard
+//
+// Dashboard Customer
+//
+
+/**
+ * GET /customer/dashboard
+ * Restituisce i dati di riepilogo per la dashboard del customer autenticato.
+ */
 export const getCustomerDashboard = async (req, res, next) => {
   try {
     const message = await getDashboardMessage(req, res, next)
-    return message
+    return message // La risposta viene gestita direttamente dal servizio
   } catch (error) {
     next(error)
   }
 }
 
-// Profilo
+//
+// Profilo Customer
+//
+
+/**
+ * GET /customer/me
+ * Restituisce il profilo del customer autenticato.
+ */
 export const getCustomerProfile = async (req, res, next) => {
   try {
     const profile = await getUserProfile(req, res, next)
@@ -24,6 +38,10 @@ export const getCustomerProfile = async (req, res, next) => {
   }
 }
 
+/**
+ * PUT /customer/me
+ * Permette al customer autenticato di aggiornare i dati del proprio profilo.
+ */
 export const updateCustomerProfile = async (req, res, next) => {
   try {
     const updated = await updateUserProfile(req, res, next)
@@ -33,7 +51,14 @@ export const updateCustomerProfile = async (req, res, next) => {
   }
 }
 
-// Geolocalizzazione
+//
+// Geolocalizzazione Customer
+//
+
+/**
+ * GET /customer/me/location
+ * Restituisce l'indirizzo e le coordinate geografiche del customer autenticato.
+ */
 export const getCustomerLocation = async (req, res, next) => {
   try {
     const location = await getUserLocation(req, res, next)
@@ -43,6 +68,10 @@ export const getCustomerLocation = async (req, res, next) => {
   }
 }
 
+/**
+ * PUT /customer/me/location
+ * Aggiorna la location del customer e ne calcola automaticamente latitudine e longitudine.
+ */
 export const updateCustomerLocation = async (req, res, next) => {
   try {
     const location = await updateUserLocation(req, res, next)

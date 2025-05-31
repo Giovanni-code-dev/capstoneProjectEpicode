@@ -3,7 +3,14 @@ import createHttpError from "http-errors"
 import { uploadMultipleImages } from "../utils/imageUploader.js"
 import { deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
 
-//  Crea un nuovo progetto
+//
+// CRUD - Progetti
+//
+
+/**
+ * POST /projects
+ * Crea un nuovo progetto per l’artista loggato (con eventuali immagini).
+ */
 export const createProject = async (req, res, next) => {
   try {
     let images = []
@@ -25,7 +32,10 @@ export const createProject = async (req, res, next) => {
   }
 }
 
-//  Progetti dell'artista loggato
+/**
+ * GET /projects
+ * Restituisce tutti i progetti dell’artista loggato.
+ */
 export const getMyProjects = async (req, res, next) => {
   try {
     const projects = await ProjectModel.find({ artist: req.user._id })
@@ -35,7 +45,10 @@ export const getMyProjects = async (req, res, next) => {
   }
 }
 
-//  Modifica progetto
+/**
+ * PUT /projects/:id
+ * Modifica un progetto dell’artista loggato.
+ */
 export const updateProject = async (req, res, next) => {
   try {
     const updated = await ProjectModel.findOneAndUpdate(
@@ -50,7 +63,10 @@ export const updateProject = async (req, res, next) => {
   }
 }
 
-//  Cancella progetto
+/**
+ * DELETE /projects/:id
+ * Elimina un progetto dell’artista loggato.
+ */
 export const deleteProject = async (req, res, next) => {
   try {
     const deleted = await ProjectModel.findOneAndDelete({
@@ -64,7 +80,14 @@ export const deleteProject = async (req, res, next) => {
   }
 }
 
-//  Ottieni progetti pubblici di un artista
+//
+// Rotte pubbliche
+//
+
+/**
+ * GET /projects/artist/:artistId
+ * Restituisce tutti i progetti pubblici di un artista specifico.
+ */
 export const getProjectsByArtistId = async (req, res, next) => {
   try {
     const projects = await ProjectModel.find({ artist: req.params.artistId })
@@ -74,7 +97,14 @@ export const getProjectsByArtistId = async (req, res, next) => {
   }
 }
 
-//  Aggiungi immagini a un progetto
+//
+// Immagini progetto
+//
+
+/**
+ * PATCH /projects/:id/images
+ * Aggiunge nuove immagini a un progetto esistente.
+ */
 export const updateProjectImages = async (req, res, next) => {
   try {
     const project = await ProjectModel.findOne({ _id: req.params.id, artist: req.user._id })
@@ -90,7 +120,10 @@ export const updateProjectImages = async (req, res, next) => {
   }
 }
 
-//  Rimuovi immagine specifica
+/**
+ * DELETE /projects/:id/images/:index
+ * Rimuove una singola immagine da un progetto tramite indice.
+ */
 export const deleteProjectImage = async (req, res, next) => {
   try {
     const { id, index } = req.params
@@ -118,7 +151,10 @@ export const deleteProjectImage = async (req, res, next) => {
   }
 }
 
-//  Riordina immagini progetto
+/**
+ * PATCH /projects/:id/images/order
+ * Riordina le immagini di un progetto in base a un nuovo array fornito dal frontend.
+ */
 export const reorderImages = async (req, res, next) => {
   try {
     const { id } = req.params

@@ -1,3 +1,5 @@
+// services/locationService.js
+
 import createHttpError from "http-errors"
 import { getCoordinatesFromAddress } from "../utils/geocoding.js"
 
@@ -5,7 +7,11 @@ import Artist from "../models/Artist.js"
 import Customer from "../models/Customer.js"
 import Admin from "../models/Admin.js"
 
-// Helper per ottenere il modello corretto
+/**
+ * Restituisce il modello Mongoose corrispondente al tipo utente
+ * @param {string} type - Tipo utente (Artist, Customer, Admin)
+ * @returns {Mongoose.Model}
+ */
 const getModelByUserType = (type) => {
   switch (type) {
     case "Artist":
@@ -19,28 +25,23 @@ const getModelByUserType = (type) => {
   }
 }
 
-// Aggiorna la posizione dell'utente
+/**
+ * Aggiorna la posizione (city, address, coordinates) dell'utente loggato
+ * Utilizza il servizio di geocoding per calcolare lat/lng da city + address
+ * @route PUT /update-location
+ */
 export const updateUserLocation = async (req, res, next) => {
   try {
-    /*
-    console.log("updateUserLocation chiamato")
-    console.log("Body ricevuto:", req.body)
-    console.log("Utente autenticato:", req.user)
-    console.log("Tipo utente:", req.userType)
-    */
     const { city, address } = req.body
 
     if (!city || !address) {
       throw createHttpError(400, "City e address sono obbligatori")
     }
 
+    // Ottieni coordinate geografiche dal servizio esterno (es. Google Maps)
     const coordinates = await getCoordinatesFromAddress(city, address)
 
-    //console.log("Coordinate ottenute:", coordinates)
-
     const Model = getModelByUserType(req.userType)
-
-    //console.log("Modello usato:", Model.modelName)
 
     const updatedUser = await Model.findByIdAndUpdate(
       req.user._id,
@@ -48,8 +49,8 @@ export const updateUserLocation = async (req, res, next) => {
         location: {
           city,
           address,
-          coordinates,
-        },
+          coordinates
+        }
       },
       { new: true }
     )
@@ -58,11 +59,9 @@ export const updateUserLocation = async (req, res, next) => {
       throw createHttpError(404, "Utente non trovato")
     }
 
-    console.log("Utente aggiornato:", updatedUser)
-
     res.json({
       message: "Posizione aggiornata con successo!",
-      location: updatedUser.location,
+      location: updatedUser.location
     })
   } catch (error) {
     console.error("Errore updateUserLocation:", error)
@@ -70,8 +69,10 @@ export const updateUserLocation = async (req, res, next) => {
   }
 }
 
-
-// Recupera la posizione dell'utente
+/**
+ * Restituisce la posizione corrente dell’utente loggato
+ * @route GET /location
+ */
 export const getUserLocation = async (req, res, next) => {
   try {
     const Model = getModelByUserType(req.userType)

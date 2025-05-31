@@ -1,12 +1,15 @@
+// services/artistService.js
+
 import Artist from "../models/Artist.js"
 import ReviewModel from "../models/Review.js"
 import createHttpError from "http-errors"
 
-// Recupera profilo pubblico artista con media voto
+// Recupera profilo pubblico di un artista, includendo la media dei voti e il numero di recensioni
 export const getPublicArtistProfile = async (req, res, next) => {
   try {
-    const artist = await Artist.findById(req.params.id)
-      .select("name bio avatar telefono website instagram facebook youtube portfolio tiktok location categories")
+    const artist = await Artist.findById(req.params.id).select(
+      "name bio avatar telefono website instagram facebook youtube portfolio tiktok location categories"
+    )
 
     if (!artist) {
       throw createHttpError(404, "Artista non trovato")
@@ -39,11 +42,10 @@ export const getPublicArtistProfile = async (req, res, next) => {
   }
 }
 
-// Ricerca artisti con filtri + media voto + ordinamento + limit
+// Ricerca artisti filtrando per città e categoria, con opzioni di ordinamento e limit
 export const searchArtistsByFilters = async (req, res, next) => {
   try {
     const { city, category, sort, limit } = req.query
-
     const query = {}
 
     if (city) {
@@ -71,31 +73,25 @@ export const searchArtistsByFilters = async (req, res, next) => {
       })
     )
 
+    // Ordinamento dinamico
     if (sort === "rating") {
       resultsWithRatings.sort((a, b) => (parseFloat(b.averageRating) || 0) - (parseFloat(a.averageRating) || 0))
-    }
-
-    if (sort === "reviewCount") {
+    } else if (sort === "reviewCount") {
       resultsWithRatings.sort((a, b) => b.reviewCount - a.reviewCount)
-    }
-
-    if (sort === "latest") {
+    } else if (sort === "latest") {
       resultsWithRatings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    }
-
-    if (sort === "random") {
+    } else if (sort === "random") {
       resultsWithRatings.sort(() => Math.random() - 0.5)
     }
 
     const finalResults = limit ? resultsWithRatings.slice(0, parseInt(limit)) : resultsWithRatings
-
     res.json(finalResults)
   } catch (error) {
     next(error)
   }
 }
 
-// Artisti "in evidenza"
+// Recupera gli artisti "in evidenza", con almeno 5 recensioni e media >= 4.5
 export const getHighlightedArtists = async (req, res, next) => {
   try {
     const artists = await Artist.find().select("name avatar bio location categories createdAt")

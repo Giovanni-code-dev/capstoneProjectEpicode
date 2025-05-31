@@ -1,13 +1,11 @@
 import createHttpError from "http-errors"
-import cloudinary from "../config/cloudinary.js"
 import path from "path"
-import { uploadToCloudinary } from "../utils/cloudinaryUploader.js"
-
+import { uploadToCloudinary, extractPublicIdFromUrl, deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
 import Artist from "../models/Artist.js"
 import Customer from "../models/Customer.js"
 import Admin from "../models/Admin.js"
 
-// Funzione helper per mappare userType al modello corretto
+// Restituisce il modello corretto in base al tipo utente
 const getModelByUserType = (type) => {
   switch (type) {
     case "Artist":
@@ -21,8 +19,11 @@ const getModelByUserType = (type) => {
   }
 }
 
-// 🔍 Recupera il profilo utente (senza password)
-export const getUserProfile = async (req, res, next) => {
+/**
+ *  Recupera il profilo completo dell’utente autenticato
+ * @route GET /profile
+ */
+const getUserProfile = async (req, res, next) => {
   try {
     const Model = getModelByUserType(req.userType)
     const user = await Model.findById(req.user._id).select("-password")
@@ -52,8 +53,11 @@ export const getUserProfile = async (req, res, next) => {
   }
 }
 
-// Aggiorna il profilo utente
-export const updateUserProfile = async (req, res, next) => {
+/**
+ *  Aggiorna i campi del profilo dell’utente autenticato
+ * @route PATCH /update-profile
+ */
+const updateUserProfile = async (req, res, next) => {
   try {
     const allowedFields = [
       "name", "bio", "categories", "telefono", "website",
@@ -67,24 +71,17 @@ export const updateUserProfile = async (req, res, next) => {
 
     const Model = getModelByUserType(req.userType)
     const user = await Model.findById(req.user._id)
-
     if (!user) throw createHttpError(404, "Utente non trovato")
 
-    // Se c'è un nuovo file avatar
+    // Gestione nuovo avatar
     if (req.file) {
-      // Se c'è già un avatar su Cloudinary → cancellalo
       if (user.avatar?.includes("res.cloudinary.com")) {
-        const url = new URL(user.avatar)
-        const parts = url.pathname.split("/")
-        const public_id = parts.slice(3, -1).join("/") + "/" + path.basename(parts.at(-1), path.extname(parts.at(-1)))
-
-        await cloudinary.uploader.destroy(public_id)
+        const public_id = extractPublicIdFromUrl(user.avatar)
+        if (public_id) await deleteFromCloudinary(public_id)
       }
 
-      // Upload del nuovo avatar
       const folder = `users/avatar/${req.userType}`
       const result = await uploadToCloudinary(req.file.buffer, folder, "image")
-
       updateData.avatar = result.secure_url
     }
 
@@ -92,11 +89,7 @@ export const updateUserProfile = async (req, res, next) => {
       return res.status(400).json({ message: "Nessun campo valido da aggiornare." })
     }
 
-    const updatedUser = await Model.findByIdAndUpdate(
-      req.user._id,
-      updateData,
-      { new: true }
-    )
+    const updatedUser = await Model.findByIdAndUpdate(req.user._id, updateData, { new: true })
 
     res.json({
       message: "Profilo aggiornato con successo!",
@@ -106,3 +99,6 @@ export const updateUserProfile = async (req, res, next) => {
     next(error)
   }
 }
+
+// Esportazione nominativa
+export { getUserProfile, updateUserProfile }

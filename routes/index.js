@@ -1,45 +1,60 @@
 import express from "express"
 const router = express.Router()
 
-// 🔐 Autenticazione
+// ==============================
+// Autenticazione
+// ==============================
+
 import authRouter from "./auth/index.js"
 import authGoogleRouter from "./authGoogle.route.js"
 
-// 👤 Profili e accesso
+router.use("/auth", authRouter)           // Login, registrazione, JWT
+router.use("/auth", authGoogleRouter)     // Login con Google OAuth2
+
+// ==============================
+// Profili e accesso utente
+// ==============================
+
 import adminRouter from "./admin.route.js"
 import artistRouter from "./artist.route.js"
-import customerRouter from "./customer.route.js"  // ✅ Cambiato
+import customerRouter from "./customer.route.js"
 
-// 🎭 Contenuti artistici
-import showRouter from "./show.route.js"
-import packageRouter from "./package.route.js"
+router.use("/admin", adminRouter)         // Dashboard e profilo admin
+router.use("/artist", artistRouter)       // Dashboard, profilo e ricerca artisti
+router.use("/customer", customerRouter)   // Dashboard e profilo customer (viewer)
+
+// ==============================
+// Contenuti artistici
+// ==============================
+
+import showPublicRoutes from "./show.public.route.js"
+import showPrivateRoutes from "./show.private.route.js"
+import packagePublicRoutes from "./package.public.route.js"
+import packagePrivateRoutes from "./package.private.route.js"
 import projectRouter from "./project.route.js"
 
-// 💬 Interazioni
+router.use("/shows", showPublicRoutes)    // GET pubblici
+router.use("/shows", showPrivateRoutes)   // CRUD privati per artisti
+
+router.use("/packages", packagePublicRoutes)
+router.use("/packages", packagePrivateRoutes)
+
+router.use("/projects", projectRouter)    // Gestione progetti artistici (solo artisti)
+
+// ==============================
+// Interazioni e comunicazione
+// ==============================
+
 import requestRouter from "./request.route.js"
 import reviewRouter from "./review.route.js"
 import likeRouter from "./like.route.js"
 import calendarRouter from "./calendar.route.js"
 import statsRouter from "./stats.route.js"
 
-// ✅ Ordine corretto dei router.use()
-
-router.use("/auth", authRouter)
-router.use("/auth", authGoogleRouter)
-
-router.use("/admin", adminRouter)
-router.use("/artist", artistRouter)
-router.use("/customer", customerRouter) // ✅ Aggiornato
-
-router.use("/shows", showRouter)
-router.use("/packages", packageRouter)
-router.use("/projects", projectRouter)
-
-router.use("/requests", requestRouter)
-router.use("/calendar", calendarRouter)
-
-router.use("/reviews", reviewRouter)
-router.use("/likes", likeRouter)
-router.use("/stats", statsRouter)
+router.use("/requests", requestRouter)    // Invio e gestione richieste preventivo
+router.use("/calendar", calendarRouter)   // Disponibilità e prenotazioni
+router.use("/reviews", reviewRouter)      // Recensioni post-evento
+router.use("/likes", likeRouter)          // Like a show/pacchetto/artista
+router.use("/stats", statsRouter)         // Statistiche per admin/artisti
 
 export default router

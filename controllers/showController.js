@@ -3,7 +3,14 @@ import createHttpError from "http-errors"
 import { deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
 import { uploadMultipleImages } from "../utils/imageUploader.js"
 
+//
+// CRUD - Shows
+//
 
+/**
+ * POST /shows
+ * Crea un nuovo spettacolo per l'artista loggato, con immagini opzionali.
+ */
 export const createShow = async (req, res, next) => {
   try {
     let imageInfos = []
@@ -30,6 +37,10 @@ export const createShow = async (req, res, next) => {
   }
 }
 
+/**
+ * PATCH /shows/:id
+ * Aggiorna uno spettacolo dell'artista loggato.
+ */
 export const updateShow = async (req, res, next) => {
   try {
     const updated = await ShowModel.findOneAndUpdate(
@@ -44,6 +55,10 @@ export const updateShow = async (req, res, next) => {
   }
 }
 
+/**
+ * DELETE /shows/:id
+ * Elimina uno spettacolo dell'artista loggato.
+ */
 export const deleteShow = async (req, res, next) => {
   try {
     const deleted = await ShowModel.findOneAndDelete({
@@ -57,6 +72,14 @@ export const deleteShow = async (req, res, next) => {
   }
 }
 
+//
+// Recupero show
+//
+
+/**
+ * GET /shows/:id
+ * Recupera un singolo spettacolo pubblico.
+ */
 export const getShowById = async (req, res, next) => {
   try {
     const show = await ShowModel.findById(req.params.id)
@@ -67,6 +90,10 @@ export const getShowById = async (req, res, next) => {
   }
 }
 
+/**
+ * GET /shows/me/:id
+ * Recupera un singolo spettacolo privato dell'artista loggato.
+ */
 export const getMyShowById = async (req, res, next) => {
   try {
     const show = await ShowModel.findOne({ _id: req.params.id, artist: req.user._id })
@@ -77,6 +104,10 @@ export const getMyShowById = async (req, res, next) => {
   }
 }
 
+/**
+ * GET /shows/artist/:artistId
+ * Recupera tutti gli show pubblici di un artista.
+ */
 export const getShowsByArtistId = async (req, res, next) => {
   try {
     const shows = await ShowModel.find({ artist: req.params.artistId })
@@ -86,6 +117,10 @@ export const getShowsByArtistId = async (req, res, next) => {
   }
 }
 
+/**
+ * GET /shows
+ * Recupera tutti gli show dell'artista loggato.
+ */
 export const getMyShows = async (req, res, next) => {
   try {
     const shows = await ShowModel.find({ artist: req.user._id })
@@ -95,6 +130,14 @@ export const getMyShows = async (req, res, next) => {
   }
 }
 
+//
+// Gestione immagini
+//
+
+/**
+ * GET /shows/:id/images
+ * Recupera le immagini di uno show.
+ */
 export const getShowImages = async (req, res, next) => {
   try {
     const show = await ShowModel.findById(req.params.id).select("images")
@@ -105,35 +148,32 @@ export const getShowImages = async (req, res, next) => {
   }
 }
 
+/**
+ * GET /shows/artist/:artistId/images
+ * Recupera tutte le immagini degli show pubblici di un artista.
+ */
 export const getAllShowImagesByArtist = async (req, res, next) => {
   try {
     const shows = await ShowModel.find({ artist: req.params.artistId }).select("images")
-
     const allImages = shows.flatMap(show => show.images)
-
     res.json(allImages)
   } catch (error) {
     next(error)
   }
 }
 
-//Aggiungere una o più nuove immagini a uno show già esistente, salvandole su Cloudinary e aggiornando il database.
+/**
+ * PATCH /shows/:id/images
+ * Aggiunge nuove immagini a uno show.
+ */
 export const updateShowImages = async (req, res, next) => {
   try {
     const show = await ShowModel.findOne({ _id: req.params.id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
 
-//Prepara un array vuoto dove inseriAMO i dati delle nuove immagini.
     let newImages = [] 
-//Se sono state caricate immagini (via multipart/form-data), chiama uploadMultipleImages
     if (req.files?.length) {
       const results = await uploadMultipleImages(req.files, "shows")
-  /*    
-    Mappa i risultati creando un oggetto immagine per ciascuna:
-    url: per mostrare l'immagine
-    public_id: per gestire la rimozione futura
-    isCover: false: tutte le immagini aggiunte non sono copertina (eventualmente la userai in seguito con reorderImages)
-  */
       newImages = results.map(r => ({
         url: r.url,
         public_id: r.public_id,
@@ -153,27 +193,34 @@ export const updateShowImages = async (req, res, next) => {
   }
 }
 
-export const deleteShowImage = async (req, res, next) => {
+/**
+ * DELETE /shows/:id/images
+ * Elimina una o più immagini specifiche da uno show tramite array di public_id.
+ */
+export const deleteShowImages = async (req, res, next) => {
   try {
-    const { id, index } = req.params
+    const { id } = req.params
+    const { public_ids } = req.body
+
+    if (!Array.isArray(public_ids) || public_ids.length === 0) {
+      throw createHttpError(400, "Fornire almeno un public_id da eliminare")
+    }
+
     const show = await ShowModel.findOne({ _id: id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
 
-    const imgIndex = parseInt(index)
-    if (isNaN(imgIndex) || imgIndex < 0 || imgIndex >= show.images.length) {
-      throw createHttpError(400, "Indice immagine non valido")
+    const imagesToRemove = show.images.filter(img => public_ids.includes(img.public_id))
+    if (imagesToRemove.length === 0) {
+      throw createHttpError(404, "Nessuna immagine trovata con i public_id forniti")
     }
 
-    const removedImage = show.images.splice(imgIndex, 1)[0]
-    if (removedImage?.public_id) {
-      await deleteFromCloudinary(removedImage.public_id)
-    }
-
+    await Promise.all(imagesToRemove.map(img => deleteFromCloudinary(img.public_id)))
+    show.images = show.images.filter(img => !public_ids.includes(img.public_id))
     await show.save()
 
     res.json({
-      message: "Immagine rimossa con successo",
-      removedImage,
+      message: `${imagesToRemove.length} immagine/i rimossa/e con successo`,
+      removedImages: imagesToRemove,
       images: show.images
     })
   } catch (error) {
@@ -181,10 +228,14 @@ export const deleteShowImage = async (req, res, next) => {
   }
 }
 
+/**
+ * PATCH /shows/:id/images/order
+ * Riordina le immagini di uno show in base a un array di public_id e flag isCover.
+ */
 export const reorderImages = async (req, res, next) => {
   try {
     const { id } = req.params
-    const { newOrder } = req.body // [{ public_id, isCover }, ...]
+    const { newOrder } = req.body
 
     const show = await ShowModel.findOne({ _id: id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
@@ -210,4 +261,3 @@ export const reorderImages = async (req, res, next) => {
     next(error)
   }
 }
-
