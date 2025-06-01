@@ -3,6 +3,7 @@ import ShowModel from "../models/Show.js"
 import createHttpError from "http-errors"
 import { deleteImagesFromModel } from "../services/image/imageDeletionHandler.js"
 import { uploadMultipleImages } from "../utils/imageUploader.js"
+import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
 
 
 
@@ -126,14 +127,19 @@ import { uploadMultipleImages } from "../utils/imageUploader.js"
   try {
     const deleted = await PackageModel.findOneAndDelete({
       _id: req.params.id,
-      artist: req.user._id
+      artist: req.user._id,
     })
+
     if (!deleted) throw createHttpError(404, "Pacchetto non trovato o non autorizzato")
-    res.status(204, "Pacchetto cancellato!!").send()
+
+    await deleteImagesFromCloudinaryList(deleted.images)
+
+    res.status(200).json({ message: "Pacchetto eliminato con successo" })
   } catch (error) {
     next(error)
   }
 }
+
 
 //
 // Rotte pubbliche
@@ -214,7 +220,7 @@ const deletePackageImages = async (req, res, next) => {
     const result = await deleteImagesFromModel({
       model: PackageModel,
       modelName: "Package",
-      userId: req.user._id,
+      ownerId: req.user._id,
       docId: req.params.id,
       publicIds: req.body.public_ids
     })

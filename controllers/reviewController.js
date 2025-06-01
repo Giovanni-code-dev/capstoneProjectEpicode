@@ -1,7 +1,11 @@
 import createHttpError from "http-errors"
 import ReviewModel from "../models/Review.js"
 import RequestModel from "../models/Request.js"
+import { uploadMultipleImages } from "../utils/imageUploader.js"
 import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
+import { deleteImagesFromModel } from "../services/image/imageDeletionHandler.js"
+import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
+
 
 //  Crea una recensione
 export const createReview = async (req, res, next) => {
@@ -14,7 +18,7 @@ export const createReview = async (req, res, next) => {
 
     const foundRequest = await RequestModel.findOne({
       _id: request,
-      user: req.user._id,
+      customer: req.user._id,
       status: "accepted",
       date: { $lte: new Date() }
     })
@@ -23,7 +27,7 @@ export const createReview = async (req, res, next) => {
       throw createHttpError(403, "Non puoi recensire questa richiesta")
     }
 
-    const alreadyReviewed = await ReviewModel.findOne({ request, user: req.user._id })
+    const alreadyReviewed = await ReviewModel.findOne({ request, customer: req.user._id })
     if (alreadyReviewed) {
       throw createHttpError(409, "Hai già lasciato una recensione per questa richiesta")
     }
@@ -43,7 +47,7 @@ export const createReview = async (req, res, next) => {
     }
 
     const newReview = new ReviewModel({
-      user: req.user._id,
+      customer: req.user._id,
       artist: foundRequest.artist,
       request,
       rating,
@@ -58,28 +62,28 @@ export const createReview = async (req, res, next) => {
   }
 }
 
-// Aggiungi immagini a una recensione esistente
+// Aggiunge immagini a una recensione esistente
 export const addReviewImages = async (req, res, next) => {
   try {
     const review = await ReviewModel.findOne({
       _id: req.params.id,
-      user: req.user._id
+      customer: req.user._id
     })
 
     if (!review) throw createHttpError(404, "Recensione non trovata o non autorizzato")
 
-    const existingCount = review.images.length
     const newCount = req.files?.length || 0
+    const existingCount = review.images.length
+
+    if (newCount === 0) {
+      throw createHttpError(400, "Devi caricare almeno un'immagine")
+    }
 
     if (existingCount + newCount > 3) {
       throw createHttpError(400, "Puoi caricare al massimo 3 immagini per recensione")
     }
 
-    const uploadPromises = req.files.map(file =>
-      uploadToCloudinary(file.buffer, "reviews")
-    )
-    const results = await Promise.all(uploadPromises)
-    const newImages = results.map(r => r.secure_url)
+    const newImages = await uploadMultipleImages(req.files, "reviews")
 
     review.images.push(...newImages)
     await review.save()
@@ -93,26 +97,27 @@ export const addReviewImages = async (req, res, next) => {
   }
 }
 
-//  Recensioni per un artista
+// Recensioni pubbliche per un artista
 export const getReviewsForArtist = async (req, res, next) => {
   try {
     const reviews = await ReviewModel.find({ artist: req.params.artistId })
-      .populate("user", "name avatar")
+      .populate("customer", "name avatar")
       .sort({ createdAt: -1 })
+
     res.json(reviews)
   } catch (error) {
     next(error)
   }
 }
 
-// ✏️ Modifica recensione
+//  Modifica una recensione
 export const updateReview = async (req, res, next) => {
   try {
     const { rating, comment } = req.body
     if (!rating && !comment) throw createHttpError(400, "Nessun dato da aggiornare")
 
     const updated = await ReviewModel.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
+      { _id: req.params.id, customer: req.user._id },
       { rating, comment },
       { new: true }
     )
@@ -128,22 +133,18 @@ export const updateReview = async (req, res, next) => {
   }
 }
 
-//  Elimina recensione
+// Elimina una recensione
 export const deleteReview = async (req, res, next) => {
   try {
     const deleted = await ReviewModel.findOneAndDelete({
       _id: req.params.id,
-      user: req.user._id,
+      customer: req.user._id,
     })
 
     if (!deleted) throw createHttpError(404, "Recensione non trovata o non autorizzato")
 
-    // Cancella eventuali immagini da Cloudinary
-    for (const img of deleted.images || []) {
-      if (img?.public_id) {
-        await deleteFromCloudinary(img.public_id)
-      }
-    }
+    // Usa la funzione riutilizzabile
+    await deleteImagesFromCloudinaryList(deleted.images)
 
     res.status(200).json({ message: "Recensione eliminata con successo" })
   } catch (error) {
@@ -151,41 +152,34 @@ export const deleteReview = async (req, res, next) => {
   }
 }
 
-//  Elimina una immagine dalla recensione
-export const deleteReviewImage = async (req, res, next) => {
+
+
+// Elimina una o più immagini da una recensione
+/**
+ * DELETE /reviews/:id/images
+ * Rimuove una o più immagini da una recensione dell'utente loggato
+ */
+export const deleteReviewImages = async (req, res, next) => {
   try {
-    const { id, index } = req.params
-
-    const review = await ReviewModel.findOne({ _id: id, user: req.user._id })
-    if (!review) throw createHttpError(404, "Recensione non trovata o non autorizzato")
-
-    const imgIndex = parseInt(index)
-    if (isNaN(imgIndex) || imgIndex < 0 || imgIndex >= review.images.length) {
-      throw createHttpError(400, "Indice immagine non valido")
-    }
-
-    const removedImage = review.images.splice(imgIndex, 1)[0]
-
-    if (removedImage?.public_id) {
-      await deleteFromCloudinary(removedImage.public_id)
-    }
-
-    await review.save()
-
-    res.json({
-      message: "Immagine rimossa con successo",
-      removedImage,
-      images: review.images
+    const result = await deleteImagesFromModel({
+      model: ReviewModel,
+      docId: req.params.id,
+      ownerId: req.user._id,
+      ownerField: "customer", // diverso da artist
+      publicIds: req.body.public_ids,
+      modelName: "recensione"
     })
+
+    res.json(result)
   } catch (error) {
     next(error)
   }
 }
 
-//  Le mie recensioni
+// Le recensioni scritte dal customer loggato
 export const getMyReviews = async (req, res, next) => {
   try {
-    const reviews = await ReviewModel.find({ user: req.user._id })
+    const reviews = await ReviewModel.find({ customer: req.user._id })
       .populate("artist", "name avatar")
       .sort({ createdAt: -1 })
 
@@ -197,4 +191,3 @@ export const getMyReviews = async (req, res, next) => {
     next(error)
   }
 }
-

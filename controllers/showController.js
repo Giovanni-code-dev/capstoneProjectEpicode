@@ -2,6 +2,8 @@ import createHttpError from "http-errors"
 import ShowModel from "../models/Show.js"
 import { uploadMultipleImages } from "../utils/imageUploader.js"
 import { deleteImagesFromModel } from "../services/image/imageDeletionHandler.js"
+import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
+
 
 //
 // CRUD - Shows
@@ -63,14 +65,20 @@ export const deleteShow = async (req, res, next) => {
   try {
     const deleted = await ShowModel.findOneAndDelete({
       _id: req.params.id,
-      artist: req.user._id
+      artist: req.user._id,
     })
+
     if (!deleted) throw createHttpError(404, "Show non trovato o non autorizzato")
-    res.status(200).json({ message: "Spettacolo eliminato con successo." })
+
+    await deleteImagesFromCloudinaryList(deleted.images)
+
+    res.status(200).json({ message: "Show eliminato con successo" })
   } catch (error) {
     next(error)
   }
 }
+
+
 
 //
 // Recupero show
@@ -171,7 +179,7 @@ export const deleteShowImages = async (req, res, next) => {
     const result = await deleteImagesFromModel({
       model: ShowModel,
       modelName: "Show",
-      userId: req.user._id,
+      ownerId: req.user._id,
       docId: req.params.id, 
       publicIds: req.body.public_ids
     })

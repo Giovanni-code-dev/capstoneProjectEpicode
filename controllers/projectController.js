@@ -4,6 +4,7 @@ import ProjectModel from "../models/Project.js"
 import createHttpError from "http-errors"
 import { uploadMultipleImages } from "../utils/imageUploader.js"
 import { deleteImagesFromModel } from "../services/image/imageDeletionHandler.js"
+import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
 
 //
 // CRUD - Progetti
@@ -53,18 +54,26 @@ export const updateProject = async (req, res, next) => {
   }
 }
 
+// DELETE /projects/:id - Elimina progetto
 export const deleteProject = async (req, res, next) => {
   try {
     const deleted = await ProjectModel.findOneAndDelete({
       _id: req.params.id,
-      artist: req.user._id,
+      artist: req.user._id
     })
+
     if (!deleted) throw createHttpError(404, "Progetto non trovato o non autorizzato")
-    res.status(204).send()
+
+    // Elimina eventuali immagini collegate
+    await deleteImagesFromCloudinaryList(deleted.images)
+
+    res.status(200).json({ message: "Progetto eliminato con successo" })
   } catch (error) {
     next(error)
   }
 }
+
+
 
 //
 // Rotte pubbliche
@@ -109,7 +118,7 @@ export const deleteProjectImage = async (req, res, next) => {
     const result = await deleteImagesFromModel({
       model: ProjectModel,
       modelName: "Project",
-      userId: req.user._id,
+      ownerId: req.user._id,
       docId: req.params.id,
       publicIds
     })
