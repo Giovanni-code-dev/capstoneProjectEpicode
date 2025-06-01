@@ -1,23 +1,21 @@
-// utils/cloudinaryUploader.js
-
-import { v2 as cloudinary } from "cloudinary"
+import cloudinary from "../config/cloudinary.js"
 import path from "path"
 import { URL } from "url"
 
 /**
- * Carica un buffer su Cloudinary
- * @param {Buffer} buffer - Il file da caricare
- * @param {string} folder - La cartella su Cloudinary
- * @param {string} resourceType - Tipo di risorsa (es. 'image', 'video')
- * @returns {Promise<object>} - Risposta Cloudinary
+ * Carica un file buffer su Cloudinary.
+ * @param {Buffer} buffer - Il file da caricare.
+ * @param {string} folder - La cartella in cui salvare (es. 'projects', 'shows').
+ * @param {string} resourceType - Tipo di file ('image' o 'video').
+ * @returns {Promise<object>} - Risposta da Cloudinary con url e public_id.
  */
 export const uploadToCloudinary = (buffer, folder = "uploads", resourceType = "image") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: resourceType },
       (err, result) => {
-        if (err) reject(err)
-        else resolve(result)
+        if (err) return reject(err)
+        resolve(result)
       }
     )
     stream.end(buffer)
@@ -25,23 +23,24 @@ export const uploadToCloudinary = (buffer, folder = "uploads", resourceType = "i
 }
 
 /**
- * Elimina una risorsa da Cloudinary tramite public_id
- * @param {string} public_id - Identificativo pubblico del file su Cloudinary
- * @returns {Promise<object>} - Risposta Cloudinary
+ * Elimina una risorsa da Cloudinary tramite public_id.
+ * @param {string} public_id - ID pubblico dell'immagine o video da rimuovere.
+ * @returns {Promise<object>} - Risultato dell'eliminazione.
  */
 export const deleteFromCloudinary = (public_id) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader.destroy(public_id, (err, result) => {
-      if (err) reject(err)
-      else resolve(result)
+      if (err) return reject(err)
+      resolve(result)
     })
   })
 }
 
 /**
- * Estrae il public_id da un URL Cloudinary
- * @param {string} imageUrl - URL completo dell’immagine Cloudinary
- * @returns {string|null} - public_id utilizzabile per la delete
+ * Estrae il public_id da un URL Cloudinary.
+ * Utile per rimuovere risorse in base al link salvato.
+ * @param {string} imageUrl - URL completo Cloudinary.
+ * @returns {string|null} - Il public_id utilizzabile per delete.
  */
 export const extractPublicIdFromUrl = (imageUrl) => {
   try {

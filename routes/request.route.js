@@ -15,7 +15,7 @@ const router = express.Router()
 //  Tutte le rotte richiedono autenticazione
 router.use(JWTAuthMiddleware)
 
-// 👤Viewer
+// Viewer
 router.post("/", customerOnly, createRequest)      // invia richiesta
 router.get("/me", customerOnly, getMyRequests)     // lista proprie richieste
 

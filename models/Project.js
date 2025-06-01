@@ -6,19 +6,11 @@ const ProjectSchema = new Schema(
     description: { type: String },
     location: { type: String }, // es. città, evento, spazio
     date: { type: Date },       // data dell’evento o progetto
-    media: [
-      {
-        url: String,
-        public_id: String,
-        type: { type: String, enum: ["image", "video"], default: "image" },
-        name: String // opzionale, per descrizione o titolo
-      }
-    ],
+    images: [{ url: String, public_id: String, isCover: { type: Boolean, default: false } }],
     collaborators: [{ type: String }],
     artist: {
       type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true
+      ref: "Artist",
     }
   },
   { timestamps: true }

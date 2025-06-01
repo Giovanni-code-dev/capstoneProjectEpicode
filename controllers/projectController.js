@@ -1,16 +1,14 @@
+// controllers/projectController.js
+
 import ProjectModel from "../models/Project.js"
 import createHttpError from "http-errors"
 import { uploadMultipleImages } from "../utils/imageUploader.js"
-import { deleteFromCloudinary } from "../utils/cloudinaryUploader.js"
+import { deleteImagesFromModel } from "../services/image/imageDeletionHandler.js"
 
 //
 // CRUD - Progetti
 //
 
-/**
- * POST /projects
- * Crea un nuovo progetto per l’artista loggato (con eventuali immagini).
- */
 export const createProject = async (req, res, next) => {
   try {
     let images = []
@@ -32,10 +30,6 @@ export const createProject = async (req, res, next) => {
   }
 }
 
-/**
- * GET /projects
- * Restituisce tutti i progetti dell’artista loggato.
- */
 export const getMyProjects = async (req, res, next) => {
   try {
     const projects = await ProjectModel.find({ artist: req.user._id })
@@ -45,10 +39,6 @@ export const getMyProjects = async (req, res, next) => {
   }
 }
 
-/**
- * PUT /projects/:id
- * Modifica un progetto dell’artista loggato.
- */
 export const updateProject = async (req, res, next) => {
   try {
     const updated = await ProjectModel.findOneAndUpdate(
@@ -63,10 +53,6 @@ export const updateProject = async (req, res, next) => {
   }
 }
 
-/**
- * DELETE /projects/:id
- * Elimina un progetto dell’artista loggato.
- */
 export const deleteProject = async (req, res, next) => {
   try {
     const deleted = await ProjectModel.findOneAndDelete({
@@ -84,10 +70,6 @@ export const deleteProject = async (req, res, next) => {
 // Rotte pubbliche
 //
 
-/**
- * GET /projects/artist/:artistId
- * Restituisce tutti i progetti pubblici di un artista specifico.
- */
 export const getProjectsByArtistId = async (req, res, next) => {
   try {
     const projects = await ProjectModel.find({ artist: req.params.artistId })
@@ -101,10 +83,6 @@ export const getProjectsByArtistId = async (req, res, next) => {
 // Immagini progetto
 //
 
-/**
- * PATCH /projects/:id/images
- * Aggiunge nuove immagini a un progetto esistente.
- */
 export const updateProjectImages = async (req, res, next) => {
   try {
     const project = await ProjectModel.findOne({ _id: req.params.id, artist: req.user._id })
@@ -120,42 +98,31 @@ export const updateProjectImages = async (req, res, next) => {
   }
 }
 
-/**
- * DELETE /projects/:id/images/:index
- * Rimuove una singola immagine da un progetto tramite indice.
- */
+// DELETE /projects/:id/images
 export const deleteProjectImage = async (req, res, next) => {
   try {
-    const { id, index } = req.params
-    const project = await ProjectModel.findOne({ _id: id, artist: req.user._id })
-    if (!project) throw createHttpError(404, "Progetto non trovato o non autorizzato")
-
-    const imgIndex = parseInt(index)
-    if (isNaN(imgIndex) || imgIndex < 0 || imgIndex >= project.images.length) {
-      throw createHttpError(400, "Indice immagine non valido")
+    const publicIds = req.body.public_ids || req.body.publicIds
+    if (!Array.isArray(publicIds) || publicIds.length === 0) {
+      throw createHttpError(400, "public_ids è richiesto e deve essere un array non vuoto")
     }
 
-    const removedImage = project.images.splice(imgIndex, 1)[0]
-    if (removedImage?.public_id) {
-      await deleteFromCloudinary(removedImage.public_id)
-    }
-
-    await project.save()
-    res.json({
-      message: "Immagine rimossa con successo",
-      removedImage,
-      images: project.images
+    const result = await deleteImagesFromModel({
+      model: ProjectModel,
+      modelName: "Project",
+      userId: req.user._id,
+      docId: req.params.id,
+      publicIds
     })
+
+    res.json(result)
   } catch (error) {
     next(error)
   }
 }
 
-/**
- * PATCH /projects/:id/images/order
- * Riordina le immagini di un progetto in base a un nuovo array fornito dal frontend.
- */
-export const reorderImages = async (req, res, next) => {
+
+
+export const reorderProjectImages = async (req, res, next) => {
   try {
     const { id } = req.params
     const { newOrder } = req.body
