@@ -6,10 +6,10 @@ const router = express.Router()
 // ==============================
 
 import authRouter from "./auth/index.js"
-import authGoogleRouter from "./authGoogle.route.js"
+import googleOAuthRouter from "./auth/googleOAuth.route.js" // ✅ CORRETTO
 
-router.use("/auth", authRouter)           // Login, registrazione, JWT
-router.use("/auth", authGoogleRouter)     // Login con Google OAuth2
+router.use("/auth", authRouter)            // Login, registrazione, JWT
+router.use("/auth", googleOAuthRouter)     // Login con Google OAuth2
 
 // ==============================
 // Profili e accesso utente

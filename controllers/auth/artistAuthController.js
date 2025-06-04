@@ -8,15 +8,24 @@ export const registerArtist = async (req, res, next) => {
     const { email, password, name } = req.body
 
     const existing = await Artist.findOne({ email })
-    if (existing) throw createHttpError(409, "Email già registrata")
+    if (existing) {
+      console.log(" Registrazione bloccata: email già presente per artista:", email)
+      throw createHttpError(409, "Utente già registrato come artista")
+    }
 
     const newArtist = new Artist({ email, password, name })
     await newArtist.save()
 
     const token = await createAccessToken({
       _id: newArtist._id,
+      role: "artist",
+      name: newArtist.name,
+      email: newArtist.email,
+      avatar: newArtist.avatar,
       model: "Artist"
     })
+
+    // Invia la risposta con il token e i dati dell'artista
 
     res.status(201).json({
       message: "Registrazione avvenuta con successo",
@@ -39,14 +48,18 @@ export const loginArtist = async (req, res, next) => {
     const { email, password } = req.body
 
     const artist = await Artist.findOne({ email })
-    if (!artist) throw createHttpError(401, "Credenziali non valide")
+    if (!artist) throw createHttpError(404, "Artista non trovato")
 
-    const isMatch = await artist.isPasswordCorrect(password)
-    if (!isMatch) throw createHttpError(401, "Credenziali non valide")
+    const isMatch = await artist.comparePassword(password)
+    if (!isMatch) throw createHttpError(401, "Password errata")
 
+    // Qui usi il nuovo payload con più info
     const token = await createAccessToken({
       _id: artist._id,
-      model: "Artist"
+      role: "Artist",
+      name: artist.name,
+      email: artist.email,
+      avatar: artist.avatar
     })
 
     res.json({
@@ -57,3 +70,4 @@ export const loginArtist = async (req, res, next) => {
     next(error)
   }
 }
+

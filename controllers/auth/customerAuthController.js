@@ -8,13 +8,19 @@ export const registerCustomer = async (req, res, next) => {
     const { email, password, name } = req.body
 
     const existing = await Customer.findOne({ email })
-    if (existing) throw createHttpError(409, "Email già registrata")
-
+    if (existing) {
+      console.log("Registrazione bloccata: email già presente per customer:", email)
+      throw createHttpError(409, "Utente già registrato come customer")
+    }
     const newCustomer = new Customer({ email, password, name })
     await newCustomer.save()
 
     const token = await createAccessToken({
       _id: newCustomer._id,
+      role: "customer",
+      name: newCustomer.name,
+      email: newCustomer.email,
+      avatar: newCustomer.avatar,
       model: "Customer"
     })
 
@@ -39,14 +45,17 @@ export const loginCustomer = async (req, res, next) => {
     const { email, password } = req.body
 
     const customer = await Customer.findOne({ email })
-    if (!customer) throw createHttpError(401, "Credenziali non valide")
+    if (!customer) throw createHttpError(404, "Customer non trovato")
 
-    const isMatch = await customer.isPasswordCorrect(password)
-    if (!isMatch) throw createHttpError(401, "Credenziali non valide")
+    const isMatch = await customer.comparePassword(password)
+    if (!isMatch) throw createHttpError(401, "Password errata")
 
     const token = await createAccessToken({
       _id: customer._id,
-      model: "Customer"
+      role: "Customer",
+      name: customer.name,
+      email: customer.email,
+      avatar: customer.avatar
     })
 
     res.json({

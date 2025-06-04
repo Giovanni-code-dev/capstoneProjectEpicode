@@ -1,59 +1,41 @@
 /**
  * jwtTools.js
  *
- * Questo file gestisce la creazione e la verifica dei token JWT.
- * I token JWT sono usati per identificare un utente dopo il login.
- * 
- * - createAccessToken(payload): genera un token firmato contenente i dati dell'utente (_id, role, ecc.)
- *   Il token è valido per una settimana.
- * 
- * - verifyAccessToken(token): verifica che il token sia valido, non scaduto, e non modificato.
- *   Se valido, restituisce il payload originale (_id, role, ecc.).
- * 
- * Usato per autenticazione e autorizzazione nel backend.
+ * Questo modulo gestisce:
+ * - La generazione di token JWT (`createAccessToken`)
+ * - La verifica e decodifica dei token JWT (`verifyAccessToken`)
+ *
+ * I token vengono firmati con un segreto e hanno una durata di 7 giorni.
+ * I token includono informazioni utili per il frontend (es. nome, email, avatar).
  */
 
-
-/*
 import jwt from "jsonwebtoken"
 
 /**
- * Crea un token JWT firmato con il segreto
- * Contiene l'id utente e il ruolo, e dura 1 settimana
- 
+ * Crea un token JWT contenente i dati essenziali dell'utente.
+ *
+ *  Campi inclusi nel token:
+ * - _id: ID MongoDB dell'utente
+ * - role: ruolo dell'utente (es. "artist", "customer", "admin")
+ * - name: nome visibile
+ * - email: email utente
+ * - avatar: URL avatar
+ * - model: modello Mongoose associato (es. "Artist", "Customer")
+ *
+ * @param {Object} payload - Dati utente da inserire nel token
+ * @returns {Promise<string>} - Token JWT firmato
+ */
 export const createAccessToken = (payload) =>
   new Promise((resolve, reject) =>
     jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: "1w" },
-      (err, token) => {
-        if (err) reject(err)
-        else resolve(token)
-      }
-    )
-  )
-
-/**
- * Verifica la validità di un token JWT e restituisce il payload
- 
-export const verifyAccessToken = (token) =>
-  new Promise((resolve, reject) =>
-    jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
-      if (err) reject(err)
-      else resolve(payload)
-    })
-  )
-
-  */
-
-  import jwt from "jsonwebtoken"
-
-// Genera un token con _id e tipo di modello (Artist, Viewer, Admin)
-export const createAccessToken = (payload) =>
-  new Promise((resolve, reject) =>
-    jwt.sign(
-      payload,
+      {
+        _id: payload._id,
+        role: payload.role,
+        name: payload.name,
+        email: payload.email,
+        avatar: payload.avatar,
+        model: payload.model,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
       (err, token) => {
@@ -63,7 +45,12 @@ export const createAccessToken = (payload) =>
     )
   )
 
-// Verifica validità e decodifica il token
+/**
+ * Verifica la validità di un token JWT e restituisce il payload decodificato.
+ *
+ * @param {string} token - Token JWT da verificare
+ * @returns {Promise<Object>} - Payload decodificato se valido
+ */
 export const verifyAccessToken = (token) =>
   new Promise((resolve, reject) =>
     jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {

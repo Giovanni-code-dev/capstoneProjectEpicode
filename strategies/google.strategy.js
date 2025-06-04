@@ -1,60 +1,74 @@
+// Configura variabili ambiente
 import dotenv from "dotenv"
 dotenv.config()
 
+// Import Google OAuth Strategy
 import passport from "passport"
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
-import UserModel from "../models/User.js"
+
+// JWT generator
 import { createAccessToken } from "../tools/jwtTools.js"
 
-console.log("🔍 DEBUG ENV", {
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  secret: process.env.GOOGLE_CLIENT_SECRET,
-  callback: process.env.GOOGLE_CALLBACK_URL
-})
+// Modelli utente
+import ArtistModel from "../models/Artist.js"
+import CustomerModel from "../models/Customer.js"
 
+// Configurazione della strategia Google OAuth
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      passReqToCallback: true, //  Necessario per leggere req.query.state
     },
-    async (accessToken, refreshToken, profile, cb) => {
+    async (req, accessToken, refreshToken, profile, cb) => {
       try {
         const email = profile.emails[0].value
         const displayName = profile.displayName
-        const avatar = profile.photos?.[0]?.value || "" // nuovo campo
+        const avatar = profile.photos?.[0]?.value || ""
+        const role = req.query.state || "customer" //  Ruolo: artist o customer
 
-        const existing = await UserModel.findOne({ email })
+        let Model
 
-        if (existing) {
-          const token = await createAccessToken({
-            _id: existing._id,
-            role: existing.role,
-            name: existing.name
-          })
-          return cb(null, { token })
+        // Seleziona il modello corretto
+        if (role === "artist") {
+          Model = ArtistModel
+        } else if (role === "customer") {
+          Model = CustomerModel
+        } else {
+          return cb(new Error("Ruolo OAuth non valido"))
         }
 
-        const newUser = new UserModel({
-          email,
-          name: displayName,
-          avatar, // salva immagine
-          password: "google-oauth", // placeholder
-          role: "viewer",
-          location: {
-            city: "da completare",
-            address: "da completare",
-            coordinates: { lat: 0, lng: 0 }
-          }
-        })
+        // Cerca l'utente esistente
+        let user = await Model.findOne({ email })
 
-        await newUser.save()
+        if (user) {
+          console.log(`⚠️ Login Google: utente già registrato come ${role} → ${email}`)
+        } else {
+          // Crea nuovo utente
+          console.log(`Registrazione Google come ${role} → ${email}`)
+          user = await Model.create({
+            email,
+            name: displayName,
+            avatar,
+            password: "google-oauth", // ⚠️ Placeholder, non usato
+            location: {
+              city: "da completare",
+              address: "da completare",
+              coordinates: { lat: 0, lng: 0 },
+            },
+          })
+        }
 
+        // Genera JWT completo
         const token = await createAccessToken({
-          _id: newUser._id,
-          role: newUser.role,
-          name: newUser.name
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          role,
+          model: role === "artist" ? "Artist" : "Customer",
         })
 
         return cb(null, { token })

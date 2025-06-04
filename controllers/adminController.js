@@ -60,14 +60,33 @@ export const updateAdminProfile = async (req, res, next) => {
  * Recupera la lista di tutti gli utenti registrati (admin, artisti, customer),
  * escludendo i campi sensibili come la password.
  */
+import ArtistModel from "../models/Artist.js"
+import CustomerModel from "../models/Customer.js"
+import AdminModel from "../models/Admin.js"
+
+/**
+ * Recupera tutti gli utenti del sistema: artisti, clienti e admin.
+ * Rimuove il campo password per sicurezza.
+ * Restituisce un array combinato con indicazione del ruolo.
+ */
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await UserModel.find().select("-password")
+    const artists = await ArtistModel.find().select("-password")
+    const customers = await CustomerModel.find().select("-password")
+    const admins = await AdminModel.find().select("-password")
+
+    const users = [
+      ...artists.map(user => ({ ...user.toObject(), role: "artist" })),
+      ...customers.map(user => ({ ...user.toObject(), role: "customer" })),
+      ...admins.map(user => ({ ...user.toObject(), role: "admin" }))
+    ]
+
     res.json(users)
   } catch (error) {
     next(error)
   }
 }
+
 
 //
 // Gestione richieste

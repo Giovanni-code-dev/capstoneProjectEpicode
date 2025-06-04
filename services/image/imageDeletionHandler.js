@@ -11,6 +11,15 @@ import { deleteFromCloudinary } from "../../utils/cloudinaryUploader.js"
  * @param {string} [params.modelName="documento"] - Nome leggibile del modello, per i messaggi.
  * @returns {Object} - Risultato con messaggio, immagini rimosse e stato aggiornato.
  */
+
+/*
+2. deleteImagesFromModel
+È più completa: elimina immagini dal documento MongoDB e da Cloudinary, filtrando solo i public_id passati.
+Utile quando vuoi eliminare solo alcune immagini, ad esempio:
+DELETE /projects/:id/images
+DELETE /packages/:id/images
+*/
+
 export const deleteImagesFromModel = async ({
   model,
   docId,

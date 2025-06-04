@@ -8,14 +8,17 @@ export const loginAdmin = async (req, res, next) => {
     const { email, password } = req.body
 
     const admin = await Admin.findOne({ email })
-    if (!admin) throw createHttpError(401, "Credenziali non valide")
+    if (!admin) throw createHttpError(404, "Admin non trovato")
 
-    const isMatch = await admin.isPasswordCorrect(password)
-    if (!isMatch) throw createHttpError(401, "Credenziali non valide")
+    const isMatch = await admin.comparePassword(password)
+    if (!isMatch) throw createHttpError(401, "Password errata")
 
     const token = await createAccessToken({
       _id: admin._id,
-      model: "Admin"
+      role: "Admin",
+      name: admin.name,
+      email: admin.email,
+      avatar: admin.avatar
     })
 
     res.json({
@@ -26,4 +29,5 @@ export const loginAdmin = async (req, res, next) => {
     next(error)
   }
 }
+
 

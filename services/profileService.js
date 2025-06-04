@@ -28,6 +28,8 @@ const getUserProfile = async (req, res, next) => {
     const Model = getModelByUserType(req.userType)
     const user = await Model.findById(req.user._id).select("-password")
 
+    console.log("🎯 JWT UTENTE:", req.user)
+
     if (!user) throw createHttpError(404, "Utente non trovato")
 
     res.json({

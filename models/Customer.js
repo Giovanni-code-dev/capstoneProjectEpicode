@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 
 const customerSchema = new mongoose.Schema(
   {
@@ -19,7 +20,7 @@ const customerSchema = new mongoose.Schema(
     portfolio: { type: String },
     tiktok: { type: String },
 
-    categories: [{ type: String }], // es. interesse del cliente
+    categories: [{ type: String }],
 
     location: {
       city: { type: String },
@@ -42,13 +43,12 @@ customerSchema.pre("save", async function (next) {
   next()
 })
 
-// 🔐 Metodo per verificare la password
-customerSchema.methods.comparePassword = async function (candidatePassword) {
+// ✅ Metodo coerente per verifica password
+customerSchema.methods.isPasswordCorrect = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password)
 }
 
-// 🔐 Metodo per generare token (opzionale se lo usi in altri modelli)
-import jwt from "jsonwebtoken"
+// 🔐 Metodo per generare token (opzionale)
 customerSchema.methods.generateAuthToken = function () {
   return jwt.sign(
     { _id: this._id, model: "Customer" },
