@@ -3,6 +3,8 @@ import { JWTAuthMiddleware } from "../middleware/JWTAuthMiddleware.js"
 import { artistOnly } from "../middleware/roleMiddleware.js"
 import upload from "../config/upload.js"
 
+
+
 import {
   getArtistDashboard,
   getArtistProfile,
@@ -11,7 +13,8 @@ import {
   updateArtistLocation,
   getPublicArtist,
   searchArtists,
-  getHighlighted
+  getHighlighted,
+  updateArtistTheme
 } from "../controllers/artistController.js"
 
 const router = express.Router()
@@ -39,6 +42,10 @@ router.get("/location", JWTAuthMiddleware, artistOnly, getArtistLocation)
 // Aggiorna la geolocalizzazione dell’artista (trigger per calcolo coordinate)
 router.put("/update-location", JWTAuthMiddleware, artistOnly, updateArtistLocation)
 
+// Aggiorna il tema personalizzato dell'artista (colore primario, sfondo, font)
+router.patch("/me/theme", JWTAuthMiddleware, artistOnly, updateArtistTheme)
+
+
 
 // === Rotte pubbliche === //
 
@@ -50,5 +57,9 @@ router.get("/public", searchArtists)
 
 // Restituisce una selezione di artisti "in evidenza" (curati dall'admin o da algoritmo)
 router.get("/highlighted", getHighlighted)
+
+
+
+
 
 export default router

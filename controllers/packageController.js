@@ -5,11 +5,6 @@ import { deleteImagesFromModel } from "../services/image/imageDeletionHandler.js
 import { uploadMultipleImages } from "../utils/imageUploader.js"
 import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
 
-
-
-
-
-
 //
 // CRUD
 //

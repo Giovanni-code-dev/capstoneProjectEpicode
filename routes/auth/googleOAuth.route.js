@@ -3,34 +3,32 @@ import passport from "../../strategies/google.strategy.js"
 
 const router = express.Router()
 
-// 🔁 Funzione per avviare OAuth con il ruolo giusto
+// Avvia l'autenticazione Google con il ruolo corretto
 const startGoogleOAuth = (role) =>
   passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
-    state: role,
+    state: role, // il "ruolo" viene passato nello state
   })
 
-// 🔁 Middleware per gestire il callback
+// Gestisce la risposta di Google
 const handleGoogleCallback = () =>
   passport.authenticate("google", { session: false })
 
-// 🎭 Login / Registrazione come ARTISTA
+// Redirect con token per ARTISTA
 router.get("/google/artist", startGoogleOAuth("artist"))
 router.get("/google/artist/callback", handleGoogleCallback(), (req, res) => {
-  res.json({
-    message: "Login artista con Google riuscito",
-    token: req.user.token,
-  })
+  const token = req.user.token
+  const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173"
+  res.redirect(`${frontendURL}/auth/google/callback?token=${token}`)
 })
 
-// 👤 Login / Registrazione come CUSTOMER
+// Redirect con token per CUSTOMER
 router.get("/google/customer", startGoogleOAuth("customer"))
 router.get("/google/customer/callback", handleGoogleCallback(), (req, res) => {
-  res.json({
-    message: "Login cliente con Google riuscito",
-    token: req.user.token,
-  })
+  const token = req.user.token
+  const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173"
+  res.redirect(`${frontendURL}/auth/google/callback?token=${token}`)
 })
 
 export default router

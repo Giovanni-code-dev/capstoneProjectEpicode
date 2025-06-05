@@ -128,3 +128,31 @@ export const getHighlighted = async (req, res, next) => {
     next(error)
   }
 }
+
+
+// PATCH /artist/me/theme rotta per aggiornare il tema dell'artista
+export const updateArtistTheme = async (req, res, next) => {
+  try {
+    const { primaryColor, backgroundColor, fontFamily } = req.body
+
+    const updatedArtist = await ArtistModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        theme: {
+          primaryColor,
+          backgroundColor,
+          fontFamily,
+        },
+      },
+      { new: true }
+    )
+
+    if (!updatedArtist) {
+      return res.status(404).json({ message: "Artista non trovato" })
+    }
+
+    res.json(updatedArtist)
+  } catch (error) {
+    next(error)
+  }
+}

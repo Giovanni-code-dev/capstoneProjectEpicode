@@ -27,6 +27,7 @@ const ArtistSchema = new Schema(
     youtube: { type: String, trim: true },
     portfolio: { type: String, trim: true },
     tiktok: { type: String, trim: true },
+
     location: {
       city: { type: String },
       address: { type: String },
@@ -35,16 +36,24 @@ const ArtistSchema = new Schema(
         lng: { type: Number }
       }
     },
+
     categories: {
       type: [String],
       enum: ["danza aerea", "trampoli", "giocoleria", "mimo", "fuoco", "altro"],
       default: []
+    },
+
+    //  Tema personalizzabile per artista
+    theme: {
+      primaryColor: { type: String, default: "#111827" },       // Testo principale
+      backgroundColor: { type: String, default: "#ffffff" },    // Sfondo
+      fontFamily: { type: String, default: "Inter, sans-serif" } // Font principale
     }
   },
   { timestamps: true }
 )
 
-// Hash della password prima del salvataggio
+//  Hash della password prima del salvataggio
 ArtistSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10)
@@ -52,7 +61,7 @@ ArtistSchema.pre("save", async function (next) {
   next()
 })
 
-// Metodo per controllare la password al login
+//  Metodo per controllare la password al login
 ArtistSchema.methods.isPasswordCorrect = function (plainPwd) {
   return bcrypt.compare(plainPwd, this.password)
 }
