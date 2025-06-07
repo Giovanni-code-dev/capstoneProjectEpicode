@@ -181,3 +181,30 @@ export const getAllArtists = async (req, res, next) => {
     next(error)
   }
 }
+
+
+
+export const getArtistCities = async (req, res, next) => {
+  try {
+    const { search } = req.query
+
+    const artists = await ArtistModel.find({}, "location.city")
+    let cities = artists
+      .map(a => a.location?.city?.trim())
+      .filter(Boolean) // rimuove undefined/null
+
+    // Rimuovi duplicati
+    cities = [...new Set(cities)]
+
+    // Filtro per input utente (es. ?search=r)
+    if (search) {
+      const searchLower = search.toLowerCase()
+      cities = cities.filter(city => city.toLowerCase().startsWith(searchLower))
+    }
+
+    res.json(cities)
+  } catch (error) {
+    next(error)
+  }
+}
+

@@ -16,7 +16,8 @@ import {
   searchArtists,
   getHighlighted,
   updateArtistTheme,
-  getAllArtists
+  getAllArtists,
+  getArtistCities
 } from "../controllers/artistController.js"
 
 const router = express.Router()
@@ -52,6 +53,9 @@ router.patch("/me/theme", JWTAuthMiddleware, artistOnly, updateArtistTheme)
 // === Rotte pubbliche === //
 router.get("/", getAllArtists)
 
+// Ottiene le città degli artisti (per il filtro di ricerca)
+router.get("/cities", getArtistCities)
+
 // Ottiene il profilo pubblico di un artista specifico (visibile in frontend)
 router.get("/public/:id", getPublicArtist)
 
@@ -60,6 +64,8 @@ router.get("/public", searchArtists)
 
 // Restituisce una selezione di artisti "in evidenza" (curati dall'admin o da algoritmo)
 router.get("/highlighted", getHighlighted)
+
+
 
 
 // Restituisce i dati grezzi dell'artista loggato (token valido)

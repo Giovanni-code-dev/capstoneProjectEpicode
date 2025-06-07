@@ -38,8 +38,8 @@ export const updateUserLocation = async (req, res, next) => {
       throw createHttpError(400, "City e address sono obbligatori")
     }
 
-    // Ottieni coordinate geografiche dal servizio esterno (es. Google Maps)
-    const coordinates = await getCoordinatesFromAddress(city, address)
+    // ✅ Ottieni lat/lng + city reale da Google
+    const geo = await getCoordinatesFromAddress(city, address)
 
     const Model = getModelByUserType(req.userType)
 
@@ -47,9 +47,12 @@ export const updateUserLocation = async (req, res, next) => {
       req.user._id,
       {
         location: {
-          city,
+          city: geo.city, // ✅ importante
           address,
-          coordinates
+          coordinates: {
+            lat: geo.lat,
+            lng: geo.lng
+          }
         }
       },
       { new: true }
@@ -68,6 +71,7 @@ export const updateUserLocation = async (req, res, next) => {
     next(error)
   }
 }
+
 
 /**
  * Restituisce la posizione corrente dell’utente loggato

@@ -12,7 +12,7 @@ export const getCoordinatesFromAddress = async (city, address) => {
         address: fullAddress,
         key: apiKey
       },
-      timeout: 5000 // ⏱️ protezione da lentezze o blocchi
+      timeout: 5000
     })
 
     const data = response.data
@@ -26,8 +26,21 @@ export const getCoordinatesFromAddress = async (city, address) => {
       throw new Error("Errore durante la geolocalizzazione.")
     }
 
-    const { lat, lng } = data.results[0].geometry.location
-    return { lat, lng }
+    const result = data.results[0]
+    const { lat, lng } = result.geometry.location
+
+    // ✅ Estrai la città dalla risposta di Google
+    const cityComponent = result.address_components.find((comp) =>
+      comp.types.includes("locality") || comp.types.includes("postal_town")
+    )
+
+    const detectedCity = cityComponent?.long_name || city
+
+    return {
+      lat,
+      lng,
+      city: detectedCity // <-- aggiunto
+    }
 
   } catch (err) {
     console.error("❌ Errore geocoding:", err.message)
