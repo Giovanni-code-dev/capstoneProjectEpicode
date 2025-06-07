@@ -32,9 +32,14 @@ import showPrivateRoutes from "./show.private.route.js"
 import packagePublicRoutes from "./package.public.route.js"
 import packagePrivateRoutes from "./package.private.route.js"
 import projectRouter from "./project.route.js"
+import categoryRouter from "./category.route.js" 
 
 router.use("/shows", showPublicRoutes)    // GET pubblici
 router.use("/shows", showPrivateRoutes)   // CRUD privati per artisti
+
+// Rotte per categorie (per SearchBar e filtri)
+router.use("/categories", categoryRouter)
+    
 
 router.use("/packages", packagePublicRoutes)
 router.use("/packages", packagePrivateRoutes)
@@ -58,3 +63,6 @@ router.use("/likes", likeRouter)          // Like a show/pacchetto/artista
 router.use("/stats", statsRouter)         // Statistiche per admin/artisti
 
 export default router
+
+
+// ==============================

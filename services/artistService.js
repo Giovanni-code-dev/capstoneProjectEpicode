@@ -7,6 +7,8 @@ import CalendarModel from "../models/CalendarEntry.js"
 
 import createHttpError from "http-errors"
 
+import CategoryModel from "../models/Category.js" 
+
 // Recupera profilo pubblico di un artista, includendo la media dei voti e il numero di recensioni
 export const getPublicArtistProfile = async (req, res, next) => {
   try {
@@ -50,22 +52,38 @@ export const getPublicArtistProfile = async (req, res, next) => {
  * Ricerca artisti filtrando per città, categoria e data.
  * Esclude gli artisti non disponibili nella data selezionata.
  */
+/**
+ * Ricerca artisti filtrando per città, categoria e data.
+ * Esclude gli artisti non disponibili nella data selezionata.
+ */
 export const searchArtistsByFilters = async (req, res, next) => {
   try {
     const { city, category, sort, limit, date } = req.query
     const query = {}
 
-    // 🔍 Filtro per città (case-insensitive)
+    // 📍 Filtro per città (case-insensitive)
     if (city) {
       query["location.city"] = { $regex: new RegExp(city, "i") }
     }
 
-    // 🔍 Filtro per categoria artistica
+    // 🎭 Filtro per categoria (convertita in ObjectId)
     if (category) {
-      query["categories"] = { $regex: new RegExp(category, "i") }
+      console.log("🎭 Categoria cercata:", category)
+      const foundCategory = await CategoryModel.findOne({
+        name: { $regex: new RegExp(`^${category}$`, "i") }
+      })
+
+      if (foundCategory) {
+        query.categories = { $in: [foundCategory._id] }
+        console.log("🧩 Categoria trovata con ID:", foundCategory._id)
+      } else {
+        // Se non trovata, nessun artista corrisponderà
+        query.categories = { $in: [] }
+        console.warn("⚠️ Nessuna categoria trovata per:", category)
+      }
     }
 
-    // ❌ Escludi artisti occupati in una data specifica (se fornita)
+    // 📆 Escludi artisti occupati in una data specifica
     if (date) {
       const day = new Date(date)
       const start = new Date(day.setHours(0, 0, 0, 0))
@@ -79,15 +97,16 @@ export const searchArtistsByFilters = async (req, res, next) => {
       query["_id"] = { $nin: busyArtistIds }
     }
 
-    // 🐞 Debug: stampa i filtri attivi
-    console.log("🎯 Filtri attivi:", query)
+    // 🧠 Debug finale dei filtri attivi
+    console.log("🎯 Filtri attivi nella query:", query)
 
-    // 🔎 Trova gli artisti pubblici filtrati
+    // 🔍 Trova artisti filtrati
     let artists = await Artist.find(query)
       .select("name avatar bio location categories createdAt")
+      .populate("categories", "name") //mostra i nomi invece degli ID
       .lean()
 
-    // ⭐ Aggiungi valutazioni e numero di recensioni
+    // ⭐ Aggiungi rating e conteggio recensioni
     const resultsWithRatings = await Promise.all(
       artists.map(async (artist) => {
         const reviews = await ReviewModel.find({ artist: artist._id })
@@ -103,20 +122,20 @@ export const searchArtistsByFilters = async (req, res, next) => {
       })
     )
 
-    // 📦 Applica ordinamento per valutazione
+    // 🔽 Ordinamento per valutazione (opzionale)
     let finalResults = resultsWithRatings
-
     if (sort === "rating") {
       finalResults = finalResults.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
     }
 
-    // 🧢 Applica limit se richiesto
+    // ⛔ Applica limit (opzionale)
     if (limit) {
       finalResults = finalResults.slice(0, parseInt(limit))
     }
 
     return res.json(finalResults)
   } catch (error) {
+    console.error("🔥 Errore in searchArtistsByFilters:", error)
     next(error)
   }
 }

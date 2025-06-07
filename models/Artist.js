@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose"
 import bcrypt from "bcrypt"
+import mongoose from "mongoose"
 
 const ArtistSchema = new Schema(
   {
@@ -46,11 +47,12 @@ const ArtistSchema = new Schema(
       },
     },
 
-    categories: {
-      type: [String],
-      enum: ["danza aerea", "trampoli", "giocoleria", "mimo", "fuoco", "altro"],
-      default: [],
-    },
+    categories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+      },
+    ],
 
     theme: {
       primaryColor: { type: String, default: "#111827" },       // Testo, pulsanti

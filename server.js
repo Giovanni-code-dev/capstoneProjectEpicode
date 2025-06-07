@@ -6,37 +6,35 @@ import dotenv from "dotenv"
 import createHttpError from "http-errors"
 import passport from "passport"
 
-// Carica le variabili prima di tutto
+//  Variabili ambiente (MONGO_URI, PORT, ecc.)
 dotenv.config()
 
-// Crea l'app dopo dotenv
+//  Crea istanza Express
 const app = express()
 
-// Inizializza passport DOPO express
+//  Inizializza Passport (necessario per OAuth)
 app.use(passport.initialize())
 
-// ROUTES
-import routes from "./routes/index.js"
+//  Middleware globali
+app.use(cors())                 // Consente richieste da altri domini
+app.use(morgan("dev"))         // Log HTTP per debug
+app.use(express.json())        // Parse JSON nel body delle richieste
 
-// MIDDLEWARE GLOBALI
-app.use(cors())
-app.use(morgan("dev"))
-app.use(express.json())
+// Import e monta tutte le routes centralizzate
+import mainRouter from "./routes/index.js"
+app.use("/", mainRouter)       // Tutte le rotte partono da qui
 
-// ROTTE
-app.use("/", routes)
-
-// ROTTA DI TEST
+//  Rotta base di test
 app.get("/", (req, res) => {
   res.send("Server attivo!")
 })
 
-// 404
+//  404 Not Found per rotte non gestite
 app.use((req, res, next) => {
   next(createHttpError(404, "Endpoint non trovato"))
 })
 
-// GESTIONE ERRORI
+//  Gestione globale degli errori
 app.use((err, req, res, next) => {
   console.log("ERRORE:", err)
   res.status(err.status || 500).json({
@@ -45,19 +43,20 @@ app.use((err, req, res, next) => {
   })
 })
 
-// MONGO + AVVIO
+// ⚙️ Avvio MongoDB e server
 const PORT = process.env.PORT || 3001
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("✅ Connesso a MongoDB")
+    console.log(" Connesso a MongoDB")
     app.listen(PORT, () => {
       console.log(`🚀 Server in ascolto su http://localhost:${PORT}`)
     })
   })
   .catch((err) => {
-    console.error("❌ Errore di connessione a MongoDB:", err)
+    console.error(" Errore di connessione a MongoDB:", err)
   })
 
-// ✅ Debug: stampa client ID
+//  Debug per Google OAuth
 console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID)

@@ -27,6 +27,7 @@ const getUserProfile = async (req, res, next) => {
   try {
     const Model = getModelByUserType(req.userType)
     const user = await Model.findById(req.user._id).select("-password")
+    .populate(req.userType === "Artist" ? "categories" : "") // Popola solo per artisti
 
     console.log("🎯 JWT UTENTE:", req.user)
 
@@ -73,6 +74,7 @@ const updateUserProfile = async (req, res, next) => {
 
     const Model = getModelByUserType(req.userType)
     const user = await Model.findById(req.user._id)
+
     if (!user) throw createHttpError(404, "Utente non trovato")
 
     // Gestione nuovo avatar
@@ -104,3 +106,4 @@ const updateUserProfile = async (req, res, next) => {
 
 // Esportazione nominativa
 export { getUserProfile, updateUserProfile }
+
