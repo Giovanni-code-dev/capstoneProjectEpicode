@@ -36,4 +36,10 @@ router.get("/location", JWTAuthMiddleware, customerOnly, getCustomerLocation)
 // Aggiorna la posizione del customer e ne ricalcola automaticamente le coordinate
 router.put("/update-location", JWTAuthMiddleware, customerOnly, updateCustomerLocation)
 
+
+// Restituisce i dati grezzi del customer loggato (token valido)
+router.get("/me", JWTAuthMiddleware, customerOnly, (req, res) => {
+  res.json(req.user)
+})
+
 export default router

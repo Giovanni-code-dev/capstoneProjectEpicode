@@ -5,6 +5,7 @@ import upload from "../config/upload.js"
 
 
 
+
 import {
   getArtistDashboard,
   getArtistProfile,
@@ -14,7 +15,8 @@ import {
   getPublicArtist,
   searchArtists,
   getHighlighted,
-  updateArtistTheme
+  updateArtistTheme,
+  getAllArtists
 } from "../controllers/artistController.js"
 
 const router = express.Router()
@@ -48,6 +50,7 @@ router.patch("/me/theme", JWTAuthMiddleware, artistOnly, updateArtistTheme)
 
 
 // === Rotte pubbliche === //
+router.get("/", getAllArtists)
 
 // Ottiene il profilo pubblico di un artista specifico (visibile in frontend)
 router.get("/public/:id", getPublicArtist)
@@ -57,6 +60,12 @@ router.get("/public", searchArtists)
 
 // Restituisce una selezione di artisti "in evidenza" (curati dall'admin o da algoritmo)
 router.get("/highlighted", getHighlighted)
+
+
+// Restituisce i dati grezzi dell'artista loggato (token valido)
+router.get("/me", JWTAuthMiddleware, artistOnly, (req, res) => {
+  res.json(req.user)
+})
 
 
 

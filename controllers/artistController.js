@@ -1,5 +1,5 @@
 // controllers/artistController.js
-
+import ArtistModel from "../models/Artist.js"
 import { getDashboardMessage } from "../services/dashboardService.js"
 import {
   getPublicArtistProfile,
@@ -135,6 +135,12 @@ export const updateArtistTheme = async (req, res, next) => {
   try {
     const { primaryColor, backgroundColor, fontFamily } = req.body
 
+    console.log("Richiesta aggiornamento tema con:", {
+      primaryColor,
+      backgroundColor,
+      fontFamily,
+    })
+
     const updatedArtist = await ArtistModel.findByIdAndUpdate(
       req.user._id,
       {
@@ -148,10 +154,29 @@ export const updateArtistTheme = async (req, res, next) => {
     )
 
     if (!updatedArtist) {
+      console.log(" Artista non trovato per update theme")
       return res.status(404).json({ message: "Artista non trovato" })
     }
 
+    console.log(" Tema aggiornato correttamente per artista:", updatedArtist._id)
     res.json(updatedArtist)
+  } catch (error) {
+    console.error("🔥 Errore durante updateArtistTheme:", error)
+    next(error)
+  }
+}
+
+
+
+
+/**
+ * Restituisce tutti gli artisti registrati
+ * (escludendo campi sensibili come password)
+ */
+export const getAllArtists = async (req, res, next) => {
+  try {
+    const artists = await ArtistModel.find({}, "-password -__v")
+    res.json(artists)
   } catch (error) {
     next(error)
   }

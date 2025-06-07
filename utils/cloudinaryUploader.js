@@ -12,15 +12,27 @@ import { URL } from "url"
 export const uploadToCloudinary = (buffer, folder = "uploads", resourceType = "image") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: resourceType },
+      {
+        folder,
+        resource_type: resourceType,
+        use_filename: true,
+        unique_filename: true,
+        overwrite: false,
+      },
       (err, result) => {
-        if (err) return reject(err)
+        if (err || !result?.public_id || !result?.secure_url) {
+          console.error("Errore upload Cloudinary:", err || "Dati mancanti:", result)
+          return reject(
+            new Error("Upload fallito: dati mancanti da Cloudinary (public_id o secure_url)")
+          )
+        }
         resolve(result)
       }
     )
     stream.end(buffer)
   })
 }
+
 
 /**
  * Elimina una risorsa da Cloudinary tramite public_id.

@@ -50,24 +50,36 @@ export const loginArtist = async (req, res, next) => {
     const artist = await Artist.findOne({ email })
     if (!artist) throw createHttpError(404, "Artista non trovato")
 
+    // 🔒 Blocca login se l'account è stato creato con Google
+    if (artist.provider !== "local") {
+      throw createHttpError(400, "Questo account è stato creato con Google. Accedi tramite Google.")
+    }
+
     const isMatch = await artist.comparePassword(password)
     if (!isMatch) throw createHttpError(401, "Password errata")
 
-    // Qui usi il nuovo payload con più info
     const token = await createAccessToken({
       _id: artist._id,
       role: "Artist",
       name: artist.name,
       email: artist.email,
-      avatar: artist.avatar
+      avatar: artist.avatar,
     })
 
     res.json({
       message: "Login artista riuscito",
-      token
+      token,
+      name: artist.name,
+      email: artist.email,
+      avatar: artist.avatar,
+      role: "artist",
+      _id: artist._id,
+      model: "Artist"
     })
+    
   } catch (error) {
     next(error)
   }
 }
+
 

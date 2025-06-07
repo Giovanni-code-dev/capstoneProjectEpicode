@@ -4,21 +4,24 @@ import { artistOnly } from "../middleware/roleMiddleware.js"
 import {
   getMyCalendar,
   addCalendarEntry,
-  deleteCalendarEntry
+  deleteCalendarEntry,
+  getOccupiedArtists // 👈 IMPORTA LA FUNZIONE
 } from "../controllers/calendarController.js"
 
 const router = express.Router()
 
-// Solo artisti loggati
+// =========================
+// 📅 Rotta pubblica
+// =========================
+router.get("/occupied", getOccupiedArtists) // 👈 AGGIUNTA PRIMA DI auth
+
+// =========================
+// 🔐 Rotte per artisti loggati
+// =========================
 router.use(JWTAuthMiddleware, artistOnly)
 
-// Visualizza tutte le proprie date
 router.get("/", getMyCalendar)
-
-// Aggiunge una nuova voce (unavailable / available)
 router.post("/", addCalendarEntry)
-
-// Rimuove una voce dal calendario
 router.delete("/:id", deleteCalendarEntry)
 
 export default router

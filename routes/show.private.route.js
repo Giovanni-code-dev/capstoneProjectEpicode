@@ -24,7 +24,7 @@ const router = express.Router()
 router.use(JWTAuthMiddleware, artistOnly)
 
 // Crea un nuovo spettacolo con possibilità di caricare immagini (max 5)
-router.post("/", upload.array("images", 5), createShow)
+router.post("/", upload.single("image"), createShow)
 
 // Recupera tutti gli spettacoli dell’artista loggato
 router.get("/", getMyShows)
@@ -33,7 +33,8 @@ router.get("/", getMyShows)
 router.get("/me/:id", getMyShowById)
 
 // Aggiorna i dati di uno spettacolo esistente
-router.patch("/:id", updateShow)
+router.patch("/:id", upload.single("image"), updateShow)
+
 
 // Elimina uno spettacolo dell’artista loggato
 router.delete("/:id", deleteShow)

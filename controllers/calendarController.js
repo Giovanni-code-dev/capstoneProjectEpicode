@@ -66,3 +66,28 @@ export const deleteCalendarEntry = async (req, res, next) => {
     next(error)
   }
 }
+
+
+// ✅ Recupera gli artisti occupati in una certa data
+export const getOccupiedArtists = async (req, res, next) => {
+  try {
+    const { date } = req.query
+    if (!date) return res.status(400).json({ message: "Date is required" })
+
+    const day = new Date(date)
+    const start = new Date(day.setHours(0, 0, 0, 0))
+    const end = new Date(day.setHours(23, 59, 59, 999))
+
+    const entries = await CalendarModel.find({
+      date: { $gte: start, $lte: end },
+      status: { $in: ["booked", "unavailable"] }, // solo se sono NON disponibili
+    })
+
+    const artistIds = entries.map((e) => e.artist.toString())
+    const uniqueArtistIds = [...new Set(artistIds)]
+
+    res.json({ occupiedArtists: uniqueArtistIds })
+  } catch (error) {
+    next(error)
+  }
+}
