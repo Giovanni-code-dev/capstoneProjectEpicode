@@ -12,9 +12,9 @@ import CategoryModel from "../models/Category.js"
 // Recupera profilo pubblico di un artista, includendo la media dei voti e il numero di recensioni
 export const getPublicArtistProfile = async (req, res, next) => {
   try {
-    const artist = await Artist.findById(req.params.id).select(
-      "name bio avatar telefono website instagram facebook youtube portfolio tiktok location categories"
-    )
+    const artist = await Artist.findById(req.params.id)
+    .select("name bio avatar telefono website instagram facebook youtube portfolio tiktok location categories")
+    .populate("categories", "name") // Aggiunta importante
 
     if (!artist) {
       throw createHttpError(404, "Artista non trovato")
