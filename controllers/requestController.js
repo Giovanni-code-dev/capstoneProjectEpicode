@@ -70,7 +70,7 @@ export const createRequest = async (req, res, next) => {
 
     const saved = await newRequest.save()
 
-    // 🔎 Recupera titoli spettacoli (per email)
+    //  Recupera titoli spettacoli (per email)
     let showTitles = []
     if (shows.length > 0) {
       const selectedShows = await ShowModel.find({ _id: { $in: shows } }, "title")
@@ -82,7 +82,7 @@ export const createRequest = async (req, res, next) => {
       if (artistExists.email) {
         await sendEmail({
           to: artistExists.email,
-          subject: `📩 Nuova richiesta da ${name}`,
+          subject: ` Nuova richiesta da ${name}`,
           text: `Hai ricevuto una richiesta per la data ${new Date(date).toLocaleDateString("it-IT")}.`,
           html: `
             <h2>Ciao ${artistExists.name}!</h2>

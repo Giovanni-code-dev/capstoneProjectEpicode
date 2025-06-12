@@ -161,7 +161,7 @@ export const updateArtistTheme = async (req, res, next) => {
     console.log(" Tema aggiornato correttamente per artista:", updatedArtist._id)
     res.json(updatedArtist)
   } catch (error) {
-    console.error("🔥 Errore durante updateArtistTheme:", error)
+    console.error(" Errore durante updateArtistTheme:", error)
     next(error)
   }
 }

@@ -51,7 +51,7 @@ mongoose
   .then(() => {
     console.log(" Connesso a MongoDB")
     app.listen(PORT, () => {
-      console.log(`🚀 Server in ascolto su http://localhost:${PORT}`)
+      console.log(`Server in ascolto su http://localhost:${PORT}`)
     })
   })
   .catch((err) => {

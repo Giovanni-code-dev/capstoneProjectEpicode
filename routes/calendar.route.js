@@ -5,18 +5,18 @@ import {
   getMyCalendar,
   addCalendarEntry,
   deleteCalendarEntry,
-  getOccupiedArtists // 👈 IMPORTA LA FUNZIONE
+  getOccupiedArtists //  IMPORTA LA FUNZIONE
 } from "../controllers/calendarController.js"
 
 const router = express.Router()
 
 // =========================
-// 📅 Rotta pubblica
+// Rotta pubblica
 // =========================
-router.get("/occupied", getOccupiedArtists) // 👈 AGGIUNTA PRIMA DI auth
+router.get("/occupied", getOccupiedArtists) // AGGIUNTA PRIMA DI auth
 
 // =========================
-// 🔐 Rotte per artisti loggati
+//  Rotte per artisti loggati
 // =========================
 router.use(JWTAuthMiddleware, artistOnly)
 

@@ -28,7 +28,7 @@ passport.use(
         const isRegister = state.startsWith("register")
         const role = isRegister ? state.split("-")[1] : state
 
-        console.log(`🧭 Google OAuth ${isRegister ? "registrazione" : "login"} in corso - ruolo: ${role}, email: ${email}`)
+        console.log(` Google OAuth ${isRegister ? "registrazione" : "login"} in corso - ruolo: ${role}, email: ${email}`)
 
         let Model
         if (role === "artist") Model = ArtistModel
@@ -45,15 +45,15 @@ passport.use(
             provider: "google", // 👈 Imposta il provider
             password: crypto.randomUUID(), // 👈 Placeholder sicuro per evitare errori mongoose
           })
-          console.log(`🆕 Nuovo ${role} creato → ${email}`)
+          console.log(` Nuovo ${role} creato → ${email}`)
         }
 
         if (!user) {
-          console.log(`❌ Login fallito: nessun ${role} trovato per ${email}`)
+          console.log(` Login fallito: nessun ${role} trovato per ${email}`)
           return done(null, false)
         }
 
-        console.log("✅ Utente trovato o appena creato:", user) // 👈 NUOVO LOG INSERITO QUI
+        console.log(" Utente trovato o appena creato:", user) //  NUOVO LOG INSERITO QUI
 
         const token = await createAccessToken({
           _id: user._id,
@@ -66,7 +66,7 @@ passport.use(
 
         return done(null, { token })
       } catch (error) {
-        console.error("🔥 Errore OAuth interno:", error)
+        console.error("Errore OAuth interno:", error)
         return done(error)
       }
     }

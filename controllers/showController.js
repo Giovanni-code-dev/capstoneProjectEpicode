@@ -66,13 +66,13 @@ export const updateShow = async (req, res, next) => {
     const show = await ShowModel.findOne({ _id: req.params.id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
 
-    // ✅ Aggiorna campi testuali se presenti
+    //  Aggiorna campi testuali se presenti
     if (req.body.title !== undefined) show.title = req.body.title
     if (req.body.description !== undefined) show.description = req.body.description
     if (req.body.category !== undefined) show.category = req.body.category
     if (req.body.durationMinutes !== undefined) show.durationMinutes = req.body.durationMinutes
 
-    // ✅ Se riceviamo nuove immagini, cancelliamo le vecchie e salviamo le nuove
+    //  Se riceviamo nuove immagini, cancelliamo le vecchie e salviamo le nuove
     if (req.files && req.files.length > 0) {
       // Elimina le immagini esistenti da Cloudinary
       const publicIdsToDelete = show.images.map(img => img.public_id).filter(Boolean)

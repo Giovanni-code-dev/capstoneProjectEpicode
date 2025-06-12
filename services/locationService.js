@@ -38,7 +38,7 @@ export const updateUserLocation = async (req, res, next) => {
       throw createHttpError(400, "City e address sono obbligatori")
     }
 
-    // ✅ Ottieni lat/lng + city reale da Google
+    //  Ottieni lat/lng + city reale da Google
     const geo = await getCoordinatesFromAddress(city, address)
 
     const Model = getModelByUserType(req.userType)
@@ -47,7 +47,7 @@ export const updateUserLocation = async (req, res, next) => {
       req.user._id,
       {
         location: {
-          city: geo.city, // ✅ importante
+          city: geo.city, //  importante
           address,
           coordinates: {
             lat: geo.lat,

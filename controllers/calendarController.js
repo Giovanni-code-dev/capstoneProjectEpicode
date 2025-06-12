@@ -16,7 +16,7 @@ export const addCalendarEntry = async (req, res, next) => {
   try {
     const { date, status, notes } = req.body
 
-    // 🔍 Validazione campi richiesti
+    //  Validazione campi richiesti
     if (!date) throw createHttpError(400, "La data è obbligatoria.")
     if (!["available", "unavailable", "booked"].includes(status)) {
       throw createHttpError(400, "Lo stato del calendario non è valido.")
@@ -32,7 +32,7 @@ export const addCalendarEntry = async (req, res, next) => {
     const saved = await entry.save()
     res.status(201).json(saved)
   } catch (error) {
-    // 🛡️ Gestione errore duplicato (es. data già presente)
+    //  Gestione errore duplicato (es. data già presente)
     if (error.code === 11000) {
       return next(createHttpError(409, "Hai già inserito una voce per questa data."))
     }
@@ -68,7 +68,7 @@ export const deleteCalendarEntry = async (req, res, next) => {
 }
 
 
-// ✅ Recupera gli artisti occupati in una certa data
+// Recupera gli artisti occupati in una certa data
 export const getOccupiedArtists = async (req, res, next) => {
   try {
     const { date } = req.query

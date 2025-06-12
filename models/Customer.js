@@ -34,7 +34,7 @@ const customerSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
-// 🔐 Hash della password prima del salvataggio
+//  Hash della password prima del salvataggio
 customerSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     const salt = await bcrypt.genSalt(10)
@@ -43,12 +43,12 @@ customerSchema.pre("save", async function (next) {
   next()
 })
 
-// ✅ Metodo coerente per verifica password
+//  Metodo coerente per verifica password
 customerSchema.methods.isPasswordCorrect = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password)
 }
 
-// 🔐 Metodo per generare token (opzionale)
+//  Metodo per generare token (opzionale)
 customerSchema.methods.generateAuthToken = function () {
   return jwt.sign(
     { _id: this._id, model: "Customer" },

@@ -29,7 +29,7 @@ const getUserProfile = async (req, res, next) => {
     const user = await Model.findById(req.user._id).select("-password")
     .populate(req.userType === "Artist" ? "categories" : "") // Popola solo per artisti
 
-    console.log("🎯 JWT UTENTE:", req.user)
+    console.log(" JWT UTENTE:", req.user)
 
     if (!user) throw createHttpError(404, "Utente non trovato")
 

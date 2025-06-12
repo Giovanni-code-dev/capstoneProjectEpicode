@@ -1,12 +1,12 @@
-# 📊 Indici del Database – Capstone
+# Indici del Database – Capstone
 
 Questa documentazione elenca tutti gli indici definiti nei modelli Mongoose per migliorare le performance e prevenire duplicati.
 
 ---
 
-## ✅ LikeSchema
+## LikeSchema
 
-📄 `models/Like.js`
+models/Like.js`
 
 ```js
 LikeSchema.index({ user: 1, targetType: 1, targetId: 1 }, { unique: true })
@@ -17,9 +17,9 @@ LikeSchema.index({ user: 1, targetType: 1, targetId: 1 }, { unique: true })
 
 ---
 
-## ✅ ReviewSchema
+##  ReviewSchema
 
-📄 `models/Review.js`
+`models/Review.js`
 
 ```js
 ReviewSchema.index({ artist: 1 })
@@ -31,9 +31,9 @@ ReviewSchema.index({ user: 1 })
 
 ---
 
-## ✅ RequestSchema
+## RequestSchema
 
-📄 `models/Request.js`
+`models/Request.js`
 
 ```js
 RequestSchema.index({ user: 1 })
@@ -47,9 +47,9 @@ RequestSchema.index({ artist: 1, date: 1, status: 1 })
 
 ---
 
-## ✅ ShowSchema
+##  ShowSchema
 
-📄 `models/Show.js`
+`models/Show.js`
 
 ```js
 ShowSchema.index({ artist: 1 })
@@ -59,9 +59,9 @@ ShowSchema.index({ artist: 1 })
 
 ---
 
-## ✅ PackageSchema
+##  PackageSchema
 
-📄 `models/Package.js`
+ `models/Package.js`
 
 ```js
 PackageSchema.index({ artist: 1 })
@@ -71,7 +71,7 @@ PackageSchema.index({ artist: 1 })
 
 ---
 
-## 🧠 Suggerimenti futuri
+##  Suggerimenti futuri
 
 - Per collezioni con milioni di documenti, considera anche indici composti su date o filtri usati di frequente.
 - Puoi visualizzare gli indici con:  

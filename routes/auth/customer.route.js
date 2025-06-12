@@ -3,7 +3,7 @@ import { registerCustomer, loginCustomer } from "../../controllers/auth/customer
 
 const router = express.Router()
 
-// 🔐 ROTTE AUTENTICAZIONE CUSTOMER
+// ROTTE AUTENTICAZIONE CUSTOMER
 router.post("/register", registerCustomer)
 router.post("/login", loginCustomer)
 

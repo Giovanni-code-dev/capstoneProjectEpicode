@@ -1,12 +1,12 @@
 
-# 📘 Floating Dreams – API Backend
+#  Floating Dreams – API Backend
 
 Benvenuto nella documentazione delle API per il backend del progetto **Floating Dreams**.
 Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 🔐 Autenticazione
+## Autenticazione
 
 ### Customer
 - `POST /customer/register` – Registrazione nuovo cliente
@@ -26,7 +26,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 👤 Admin
+## Admin
 
 - `GET /admin/dashboard` – Statistiche generali (via service)
 - `GET /admin/profile` – Dati profilo admin
@@ -36,7 +36,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 🧑‍🎤 Artist
+##  Artist
 
 - `GET /artist/profile` – Visualizza profilo
 - `PATCH /artist/update-profile` – Aggiorna profilo artista
@@ -45,7 +45,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 📦 Package
+##  Package
 
 - `GET /packages` – Pacchetti personali dell’artista
 - `GET /packages/artist/:artistId` – Pacchetti pubblici di un artista
@@ -57,7 +57,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 🎭 Show
+##  Show
 
 - `GET /shows` – Spettacoli personali dell’artista
 - `GET /shows/artist/:artistId` – Spettacoli pubblici di un artista
@@ -69,7 +69,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 🗓️ Calendar
+##  Calendar
 
 - `GET /calendar` – Visualizza date disponibili
 - `POST /calendar` – Aggiungi data disponibile
@@ -78,7 +78,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 📝 Review
+## Review
 
 - `GET /reviews/artist/:artistId` – Recensioni per un artista
 - `POST /reviews` – Crea recensione
@@ -97,7 +97,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 📬 Requests
+## Requests
 
 - `GET /requests` – (Artista) Richieste ricevute
 - `GET /requests/customer` – (Customer) Richieste inviate
@@ -107,7 +107,7 @@ Questa web app gestisce artisti, spettacoli, richieste e recensioni.
 
 ---
 
-## 📊 Stats (Admin)
+##  Stats (Admin)
 
 - `GET /stats/overview` – Panoramica generale sistema
 
@@ -123,7 +123,7 @@ Authorization: Bearer <token>
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 Puoi testare tutte le rotte con Postman. Ti consigliamo di creare una collection con:
 - Variabili di ambiente (baseUrl, token artist, customer, admin)
@@ -131,4 +131,4 @@ Puoi testare tutte le rotte con Postman. Ti consigliamo di creare una collection
 
 ---
 
-## ✨ Progetto realizzato per il Capstone finale – Epicode Web Dev.
+## Progetto realizzato per il Capstone finale – Epicode Web Dev.

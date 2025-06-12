@@ -12,7 +12,7 @@ const RequestSchema = new Schema({
   distanceKm: { type: Number },
   date: { type: Date, required: true },
   message: { type: String },
-  // 🆕 Campi aggiunti
+  // Campi aggiunti
   name: { type: String },   // nome del cliente al momento della richiesta
   email: { type: String },  // email del cliente al momento della richiesta
   status: {

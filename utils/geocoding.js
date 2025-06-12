@@ -4,7 +4,7 @@ export const getCoordinatesFromAddress = async (city, address) => {
   const fullAddress = `${address}, ${city}`
   const apiKey = process.env.GOOGLE_MAPS_API_KEY
 
-  console.log("📍 Cercando coordinate per:", fullAddress)
+  console.log(" Cercando coordinate per:", fullAddress)
 
   try {
     const response = await axios.get("https://maps.googleapis.com/maps/api/geocode/json", {
@@ -16,7 +16,7 @@ export const getCoordinatesFromAddress = async (city, address) => {
     })
 
     const data = response.data
-    console.log("📡 Risposta API:", data)
+    console.log(" Risposta API:", data)
 
     if (data.status === "ZERO_RESULTS") {
       throw new Error("Indirizzo non trovato. Verifica città e via.")
@@ -29,7 +29,7 @@ export const getCoordinatesFromAddress = async (city, address) => {
     const result = data.results[0]
     const { lat, lng } = result.geometry.location
 
-    // ✅ Estrai la città dalla risposta di Google
+    // Estrai la città dalla risposta di Google
     const cityComponent = result.address_components.find((comp) =>
       comp.types.includes("locality") || comp.types.includes("postal_town")
     )
@@ -43,7 +43,7 @@ export const getCoordinatesFromAddress = async (city, address) => {
     }
 
   } catch (err) {
-    console.error("❌ Errore geocoding:", err.message)
+    console.error(" Errore geocoding:", err.message)
     throw new Error("Impossibile ottenere le coordinate. Riprova più tardi.")
   }
 }

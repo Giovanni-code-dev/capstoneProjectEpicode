@@ -50,7 +50,7 @@ export const loginArtist = async (req, res, next) => {
     const artist = await Artist.findOne({ email })
     if (!artist) throw createHttpError(404, "Artista non trovato")
 
-    // 🔒 Blocca login se l'account è stato creato con Google
+    //  Blocca login se l'account è stato creato con Google
     if (artist.provider !== "local") {
       throw createHttpError(400, "Questo account è stato creato con Google. Accedi tramite Google.")
     }

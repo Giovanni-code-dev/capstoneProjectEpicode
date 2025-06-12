@@ -1,7 +1,7 @@
 import LikeModel from "../models/Like.js"
 import createHttpError from "http-errors"
 
-// 🔹 1. Aggiungi un like
+//  1. Aggiungi un like
 export const addLike = async (req, res, next) => {
   try {
     const { targetType, targetId } = req.body
@@ -26,7 +26,7 @@ export const addLike = async (req, res, next) => {
   }
 }
 
-// 🔹 2. Rimuovi un like
+// 2. Rimuovi un like
 export const removeLike = async (req, res, next) => {
   try {
     const { targetType, targetId } = req.params
@@ -45,7 +45,7 @@ export const removeLike = async (req, res, next) => {
   }
 }
 
-// 🔹 3. Conta i like di un elemento
+// 3. Conta i like di un elemento
 export const getLikeCount = async (req, res, next) => {
   try {
     const { targetType, targetId } = req.params
@@ -57,7 +57,7 @@ export const getLikeCount = async (req, res, next) => {
   }
 }
 
-// 🔹 4. Verifica se l'utente ha messo like
+//  4. Verifica se l'utente ha messo like
 export const isLikedByMe = async (req, res, next) => {
   try {
     const { targetType, targetId } = req.params
@@ -69,7 +69,7 @@ export const isLikedByMe = async (req, res, next) => {
   }
 }
 
-// 🔹 5. Recupera tutti i like messi dall'utente
+//  5. Recupera tutti i like messi dall'utente
 export const getMyLikes = async (req, res, next) => {
   try {
     const filter = { user: req.user._id }
