@@ -10,25 +10,36 @@ import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
 //
 
 // POST /packages - Crea un nuovo pacchetto
- const createPackage = async (req, res, next) => {
+const createPackage = async (req, res, next) => {
   try {
     let imageUrls = []
 
+    // Caricamento immagini multiple
     if (req.files?.length) {
       const results = await uploadMultipleImages(req.files, "packages")
-      imageUrls = results.map(r => ({
+      imageUrls = results.map((r, i) => ({
         url: r.url,
         public_id: r.public_id,
-        isCover: false
+        isCover: i === 0 // la prima è la cover
       }))
     }
 
-    const { shows = [] } = req.body
+    // 📦 Parsing di req.body.shows se arriva come stringa (da FormData)
+    let shows = []
 
-    if (!Array.isArray(shows) || shows.length === 0) {
+    if (typeof req.body.shows === "string") {
+      shows = JSON.parse(req.body.shows)
+    } else if (Array.isArray(req.body.shows)) {
+      shows = req.body.shows
+    } else {
+      throw createHttpError(400, "Il campo shows deve essere un array.")
+    }
+
+    if (shows.length === 0) {
       throw createHttpError(400, "Devi includere almeno uno spettacolo.")
     }
 
+    // Verifica appartenenza spettacoli all’artista loggato
     const validShows = await ShowModel.find({
       _id: { $in: shows },
       artist: req.user._id
@@ -51,6 +62,7 @@ import { deleteImagesFromCloudinaryList } from "../utils/imageUploader.js"
     next(error)
   }
 }
+
 
 // GET /packages - Pacchetti dell’artista loggato
  const getMyPackages = async (req, res, next) => {

@@ -9,7 +9,17 @@ import createHttpError from "http-errors"
 // 1. Utente invia una nuova richiesta
 export const createRequest = async (req, res, next) => {
   try {
-    const { artist, packages = [], shows = [], location, distanceKm, date, message } = req.body
+    const {
+      artist,
+      packages = [],
+      shows = [],
+      location,
+      distanceKm,
+      date,
+      message,
+      name,   // ✅ ricevuti dal frontend
+      email   // ✅ ricevuti dal frontend
+    } = req.body
 
     if (!artist || !date) {
       throw createHttpError(400, "Artista e data sono obbligatori")
@@ -55,6 +65,8 @@ export const createRequest = async (req, res, next) => {
       artist,
       packages,
       shows,
+      name,          // ✅ nuovo campo
+      email,         // ✅ nuovo campo
       location,
       distanceKm,
       date,
@@ -63,7 +75,9 @@ export const createRequest = async (req, res, next) => {
 
     const saved = await newRequest.save()
 
-    console.log(`[REQUEST] ${req.user.name || req.user.email} ha richiesto uno o più spettacoli a ${artist} per il ${new Date(date).toLocaleDateString()}`)
+    console.log(
+      `[REQUEST] ${req.user.name || req.user.email} ha richiesto uno o più spettacoli a ${artist} per il ${new Date(date).toLocaleDateString()}`
+    )
 
     res.status(201).json(saved)
   } catch (error) {

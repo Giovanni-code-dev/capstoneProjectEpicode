@@ -40,7 +40,8 @@ export const getPublicArtistProfile = async (req, res, next) => {
       location: artist.location,
       categories: artist.categories,
       averageRating,
-      reviewCount: reviews.length
+      reviewCount: reviews.length,
+      theme: artist.theme
     })
   } catch (error) {
     next(error)

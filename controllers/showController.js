@@ -23,21 +23,20 @@ export const createShow = async (req, res, next) => {
   try {
     let imageInfos = []
 
-    // ✅ Se viene inviata una singola immagine, la carichiamo su Cloudinary
-    if (req.file) {
-      const uploaded = await uploadToCloudinary(req.file.buffer, "shows")
-      imageInfos.push({
-        url: uploaded.secure_url,
-        public_id: uploaded.public_id,
-        isCover: true
-      })
+    // ✅ Carica più immagini se presenti
+    if (req.files && req.files.length > 0) {
+      const results = await uploadMultipleImages(req.files, "shows")
+      imageInfos = results.map((r, i) => ({
+        url: r.url,
+        public_id: r.public_id,
+        isCover: i === 0, // prima immagine = copertina
+      }))
     }
 
-    // ✅ Creazione del nuovo show con artista e immagine (se presente)
     const newShow = new ShowModel({
       ...req.body,
       artist: req.user._id,
-      images: imageInfos
+      images: imageInfos,
     })
 
     const saved = await newShow.save()
@@ -49,58 +48,52 @@ export const createShow = async (req, res, next) => {
 }
 
 
+
 /**
  * PATCH /shows/:id
  * Aggiorna uno spettacolo dell'artista loggato.
+ */
+/**
+ * PATCH /shows/:id
+ * Aggiorna uno spettacolo e (se inviate) sovrascrive completamente le immagini.
+ */
+/**
+ * PATCH /shows/:id
+ * Aggiorna uno spettacolo e (se inviate) sovrascrive completamente le immagini.
  */
 export const updateShow = async (req, res, next) => {
   try {
     const show = await ShowModel.findOne({ _id: req.params.id, artist: req.user._id })
     if (!show) throw createHttpError(404, "Show non trovato o non autorizzato")
 
-    // Aggiorna campi base
+    // ✅ Aggiorna campi testuali se presenti
     if (req.body.title !== undefined) show.title = req.body.title
     if (req.body.description !== undefined) show.description = req.body.description
     if (req.body.category !== undefined) show.category = req.body.category
     if (req.body.durationMinutes !== undefined) show.durationMinutes = req.body.durationMinutes
-    
 
-    // ✅ Gestione nuova immagine di copertina (se presente)
-    if (req.file) {
-      console.log("✅ Immagine ricevuta:", req.file)
+    // ✅ Se riceviamo nuove immagini, cancelliamo le vecchie e salviamo le nuove
+    if (req.files && req.files.length > 0) {
+      // Elimina le immagini esistenti da Cloudinary
+      const publicIdsToDelete = show.images.map(img => img.public_id).filter(Boolean)
+      await deleteImagesFromCloudinaryList(publicIdsToDelete)
 
-      // Carica su Cloudinary usando il buffer
-      const uploaded = await uploadToCloudinary(req.file.buffer, "shows")
+      // Carica le nuove immagini
+      const uploadedImages = await uploadMultipleImages(req.files, "shows")
 
-      console.log("✅ Risultato Cloudinary:", uploaded)
-
-
-      const imageUrl = uploaded.secure_url
-      const public_id = uploaded.public_id
-
-      // Se già presente, sostituisci la copertina
-      if (show.images.length > 0) {
-        const oldImage = show.images[0]
-        
-        if (oldImage.public_id) {
-          try {
-            await deleteFromCloudinary(oldImage.public_id)
-          } catch (err) {
-            console.warn("⚠️ Errore durante la cancellazione su Cloudinary:", err)
-          }
-        } else {
-          console.warn("⚠️ Nessun public_id presente nell’immagine esistente.")
-        }
-      
-        show.images[0] = { url: imageUrl, public_id }
-      }
-      else {
-        show.images.push({ url: imageUrl, public_id })
-      }
+      // Aggiorna lo show con le nuove immagini
+      show.images = uploadedImages.map((r, i) => ({
+        url: r.url,
+        public_id: r.public_id,
+        isCover: i === 0, // prima immagine è la copertina
+      }))
     }
 
     await show.save()
-    res.json(show)
+    res.json({
+      message: "Show aggiornato con successo",
+      show,
+    })
   } catch (error) {
     console.error("ERRORE UPDATE SHOW:", error)
     next(error)
