@@ -1,10 +1,10 @@
-
 import ArtistModel from "../models/Artist.js"
 import PackageModel from "../models/Package.js"
 import ShowModel from "../models/Show.js"
 import RequestModel from "../models/Request.js"
 import CalendarModel from "../models/CalendarEntry.js"
 import createHttpError from "http-errors"
+import { sendEmail } from "../utils/sendEmail.js" // ✉️ Email utility
 
 // 1. Utente invia una nuova richiesta
 export const createRequest = async (req, res, next) => {
@@ -17,19 +17,17 @@ export const createRequest = async (req, res, next) => {
       distanceKm,
       date,
       message,
-      name,   // ✅ ricevuti dal frontend
-      email   // ✅ ricevuti dal frontend
+      name,
+      email
     } = req.body
 
     if (!artist || !date) {
       throw createHttpError(400, "Artista e data sono obbligatori")
     }
 
-    // 🔎 Verifica che l'artista esista
     const artistExists = await ArtistModel.findById(artist)
     if (!artistExists) throw createHttpError(404, "Artista non trovato")
 
-    // 🔎 Verifica che tutti i pacchetti esistano
     if (packages.length > 0) {
       const existingPackages = await PackageModel.find({ _id: { $in: packages } })
       if (existingPackages.length !== packages.length) {
@@ -37,7 +35,6 @@ export const createRequest = async (req, res, next) => {
       }
     }
 
-    // 🔎 Verifica che tutti gli spettacoli esistano
     if (shows.length > 0) {
       const existingShows = await ShowModel.find({ _id: { $in: shows } })
       if (existingShows.length !== shows.length) {
@@ -45,7 +42,6 @@ export const createRequest = async (req, res, next) => {
       }
     }
 
-    // ⛔ Verifica se l'artista è già impegnato in quella data
     const conflict = await CalendarModel.findOne({
       artist,
       date,
@@ -59,14 +55,13 @@ export const createRequest = async (req, res, next) => {
       })
     }
 
-    // ✅ Crea la richiesta
     const newRequest = new RequestModel({
       customer: req.user._id,
       artist,
       packages,
       shows,
-      name,          // ✅ nuovo campo
-      email,         // ✅ nuovo campo
+      name,
+      email,
       location,
       distanceKm,
       date,
@@ -74,6 +69,37 @@ export const createRequest = async (req, res, next) => {
     })
 
     const saved = await newRequest.save()
+
+    // 🔎 Recupera titoli spettacoli (per email)
+    let showTitles = []
+    if (shows.length > 0) {
+      const selectedShows = await ShowModel.find({ _id: { $in: shows } }, "title")
+      showTitles = selectedShows.map(s => s.title)
+    }
+
+    // ✉️ Invia email all’artista
+    try {
+      if (artistExists.email) {
+        await sendEmail({
+          to: artistExists.email,
+          subject: `📩 Nuova richiesta da ${name}`,
+          text: `Hai ricevuto una richiesta per la data ${new Date(date).toLocaleDateString("it-IT")}.`,
+          html: `
+            <h2>Ciao ${artistExists.name}!</h2>
+            <p>Hai ricevuto una nuova richiesta da <strong>${name}</strong> (${email}) per il giorno <strong>${new Date(date).toLocaleDateString("it-IT")}</strong>.</p>
+            ${
+              showTitles.length > 0
+                ? `<p><strong>Spettacoli richiesti:</strong><br>${showTitles.join(", ")}</p>`
+                : `<p>Nessuno spettacolo selezionato.</p>`
+            }
+            <p><strong>Messaggio:</strong></p>
+            <blockquote>${message || "Nessun messaggio aggiunto"}</blockquote>
+          `
+        })
+      }
+    } catch (emailError) {
+      console.error("Errore nell'invio email all'artista:", emailError.message)
+    }
 
     console.log(
       `[REQUEST] ${req.user.name || req.user.email} ha richiesto uno o più spettacoli a ${artist} per il ${new Date(date).toLocaleDateString()}`
@@ -92,9 +118,9 @@ export const getMyRequests = async (req, res, next) => {
     if (req.query.status) query.status = req.query.status
 
     const requests = await RequestModel.find(query)
-    .populate("artist", "name")
-    .populate("packages", "title")
-    .populate("shows", "title")
+      .populate("artist", "name")
+      .populate("packages", "title")
+      .populate("shows", "title")
 
     res.json(requests)
   } catch (error) {
@@ -181,7 +207,7 @@ export const updateRequestStatus = async (req, res, next) => {
   }
 }
 
-//5. Admin o artista visualizza una richiesta specifica
+// 5. Admin o artista visualizza una richiesta specifica
 export const getRequestById = async (req, res, next) => {
   try {
     const found = await RequestModel.findById(req.params.id)

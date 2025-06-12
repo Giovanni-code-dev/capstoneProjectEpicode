@@ -62,21 +62,21 @@ export const searchArtistsByFilters = async (req, res, next) => {
     const { city, category, sort, limit, date } = req.query
     const query = {}
 
-    // 📍 Filtro per città (case-insensitive)
+    //  Filtro per città (case-insensitive)
     if (city) {
       query["location.city"] = { $regex: new RegExp(city, "i") }
     }
 
-    // 🎭 Filtro per categoria (convertita in ObjectId)
+    //  Filtro per categoria (convertita in ObjectId)
     if (category) {
-      console.log("🎭 Categoria cercata:", category)
+      console.log(" Categoria cercata:", category)
       const foundCategory = await CategoryModel.findOne({
         name: { $regex: new RegExp(`^${category}$`, "i") }
       })
 
       if (foundCategory) {
         query.categories = { $in: [foundCategory._id] }
-        console.log("🧩 Categoria trovata con ID:", foundCategory._id)
+        console.log(" Categoria trovata con ID:", foundCategory._id)
       } else {
         // Se non trovata, nessun artista corrisponderà
         query.categories = { $in: [] }
@@ -84,7 +84,7 @@ export const searchArtistsByFilters = async (req, res, next) => {
       }
     }
 
-    // 📆 Escludi artisti occupati in una data specifica
+    //  Escludi artisti occupati in una data specifica
     if (date) {
       const day = new Date(date)
       const start = new Date(day.setHours(0, 0, 0, 0))
@@ -98,16 +98,16 @@ export const searchArtistsByFilters = async (req, res, next) => {
       query["_id"] = { $nin: busyArtistIds }
     }
 
-    // 🧠 Debug finale dei filtri attivi
-    console.log("🎯 Filtri attivi nella query:", query)
+    //  Debug finale dei filtri attivi
+    console.log(" Filtri attivi nella query:", query)
 
-    // 🔍 Trova artisti filtrati
+    //  Trova artisti filtrati
     let artists = await Artist.find(query)
       .select("name avatar bio location categories createdAt")
       .populate("categories", "name") //mostra i nomi invece degli ID
       .lean()
 
-    // ⭐ Aggiungi rating e conteggio recensioni
+    //  Aggiungi rating e conteggio recensioni
     const resultsWithRatings = await Promise.all(
       artists.map(async (artist) => {
         const reviews = await ReviewModel.find({ artist: artist._id })
@@ -123,20 +123,20 @@ export const searchArtistsByFilters = async (req, res, next) => {
       })
     )
 
-    // 🔽 Ordinamento per valutazione (opzionale)
+    // Ordinamento per valutazione (opzionale)
     let finalResults = resultsWithRatings
     if (sort === "rating") {
       finalResults = finalResults.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
     }
 
-    // ⛔ Applica limit (opzionale)
+    //  Applica limit (opzionale)
     if (limit) {
       finalResults = finalResults.slice(0, parseInt(limit))
     }
 
     return res.json(finalResults)
   } catch (error) {
-    console.error("🔥 Errore in searchArtistsByFilters:", error)
+    console.error(" Errore in searchArtistsByFilters:", error)
     next(error)
   }
 }
